@@ -24,7 +24,7 @@ auto enp0s9
 iface enp0s9 inet static
 address 10.0.20.1/24
 
-
+------------------------------------------------------------------------------------------------------------
 # RESOLV.CONF - File reso immutabile con chattr +i /etc/resolv.conf per impedire a systemd-resolved di sovrascriverlo al riavvio.
 
 # Dominio di ricerca predefinito: permette di risolvere gli hostname corti (es. 'dc' invece di 'dc.lab.local')
