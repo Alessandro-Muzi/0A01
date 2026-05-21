@@ -10,7 +10,7 @@ Server Debian 13 "Trixie" (Oracle VM), configurato con funzioni di routing e Nat
 1 bridge (enp0s3) e 2 LAN (LAN1=enp0s8, LAN2=enp0s9)
 
 la prima LAN (10.0.10.1) è destinata a 2 client Linux (Fedora=10.0.10.101, Ubuntu=10.0.10.102), la seconda invece (10.0.20.1) collega il server Debian
-a una macchina Windows Server, Controller di Dominio, che gestisce Active Directory e server DNS , per tutta la stuttura.Tutto il traffico
+a una macchina Windows Server, Controller di Dominio, che gestisce Active Directory e server DNS , per tutta la struttura.Tutto il traffico
 della rete privata passa crittografato nel tunnel di WireGuard (VPN).
 
 Samba, da Debian, tramite Winbind si interfaccia con AD, e per mezzo di CUPS gestisce un Print Server condiviso.
