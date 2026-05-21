@@ -39,3 +39,7 @@ PublicKey = *
 AllowedIPs = 10.8.0.4/32
 
 ## Avendo Wireguard installato su tutti i nodi, l'intera infrastruttura partecipa a un modello di sicurezza a chiavi asimmetriche.
+
+
+
+
