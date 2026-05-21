@@ -43,6 +43,27 @@ iptables -P OUTPUT ACCEPT
 # Abilita il forwarding IPv4 a livello kernel
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
+--------------------------------------------------------------------------------------------------------------
+[Unit]
+# Descrizione del servizio mostrata da systemctl status
+Description=Firewall iptables - NAT e regole di rete
+
+# Assicura che il servizio parta dopo che la rete è disponibile
+After=network.target
+
+[Service]
+# oneshot: lo script esegue i comandi e termina, systemd lo considera completato correttamente
+Type=oneshot
+
+# Percorso dello script firewall (assicurarsi che sia eseguibile: chmod +x)
+ExecStart=/etc/systemd/system/nat.sh
+
+# Lo script gira come root (necessario per iptables)
+User=root
+
+[Install]
+# Il servizio viene avviato nel normale target multiutente (avvio standard)
+WantedBy=multi-user.target
 
 
 
