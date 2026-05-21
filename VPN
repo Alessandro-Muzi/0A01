@@ -11,7 +11,7 @@ SaveConfig = False
 PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
 
 # --- RIPRISTINO REGOLE DI RETE (DISATTIVAZIONE) ---
-# Rimuove chirurgicamente le regole di inoltro e NAT quando l'interfaccia wg0 viene spenta, evitando di lasciare falle nel firewall del sistema
+# Rimuove le regole di inoltro e NAT quando l'interfaccia wg0 viene spenta, evitando di lasciare falle nel firewall del sistema
 Postdown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o enp0s3 -j MASQUERADE
 
 # Porta UDP standard di ascolto per il servizio WireGuard (aperta sul firewall esterno)
