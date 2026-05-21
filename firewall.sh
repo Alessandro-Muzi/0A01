@@ -1,3 +1,4 @@
+#!/bin/bash
 # Azzera tutte le regole esistenti (INPUT, FORWARD, OUTPUT)
 iptables -F
 # Azzera le regole della tabella nat
