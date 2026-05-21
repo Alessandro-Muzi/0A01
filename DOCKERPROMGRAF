@@ -113,7 +113,7 @@ services:
       - "3100:3100"
     restart: always
     volumes:
-      -loki_data:/loki
+      - loki_data:/loki
  
 
   promtail:
