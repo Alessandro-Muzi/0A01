@@ -35,6 +35,7 @@ log "___Avvio Backup__"
 #            -A: preserva ACL
 #            -X: preserva extended attributes 
 #            -v: verbose
+## --delete rimuove dalla destinazione i file che non esistono più nella sorgente.
 if rsync -aAXv --delete "${SOURCE}" "${DEST}" >> "${LOGFILE}" 2>&1; then
      log "SUCCESSO: Backup completato in ${DEST}"
 else
