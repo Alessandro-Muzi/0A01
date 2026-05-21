@@ -1,0 +1,41 @@
+[Interface]
+# Indirizzo IP privato assegnato al server VPN (Gateway Debian) all'interno del tunnel WireGuard
+Address = 10.8.0.1/24
+
+# Disabilita il salvataggio automatico delle modifiche runtime per preservare l'integrità di questo file config
+SaveConfig = False
+
+# --- REGOLE DI ROUTING E FIREWALLING DINAMICHE (ATTIVAZIONE) ---
+# 1. Accetta e inoltra (FORWARD) tutto il traffico in entrata e in uscita dall'interfaccia virtuale wg0
+# 2. Applica il MASQUERADE (NAT) sull'interfaccia WAN 'enp0s3': permette ai client VPN di navigare in internet usando l'IP del Gateway
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -A FORWARD -o wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+
+# --- RIPRISTINO REGOLE DI RETE (DISATTIVAZIONE) ---
+# Rimuove chirurgicamente le regole di inoltro e NAT quando l'interfaccia wg0 viene spenta, evitando di lasciare falle nel firewall del sistema
+Postdown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -D FORWARD -o wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o enp0s3 -j MASQUERADE
+
+# Porta UDP standard di ascolto per il servizio WireGuard (aperta sul firewall esterno)
+ListenPort = 51820
+
+# Chiave privata asimmetrica del server (oscurata per motivi di sicurezza)
+PrivateKey = *
+
+# --- CONFIGURAZIONE PEER (CLIENT REMOTI) ---
+
+[Peer]
+# Chiave pubblica del primo client (es. Postazione Fedora Amministratore)
+PublicKey = *
+# Restringe il traffico di questo peer all'IP specifico assegnatogli nel tunnel (IP Binding di sicurezza)
+AllowedIPs = 10.8.0.2/32
+
+[Peer]
+# Chiave pubblica del secondo client autorizzato
+PublicKey = *
+AllowedIPs = 10.8.0.3/32
+
+[Peer]
+# Chiave pubblica del terzo client autorizzato
+PublicKey = *
+AllowedIPs = 10.8.0.4/32
+
+## Avendo Wireguard installato su tutti i nodi, l'intera infrastruttura partecipa a un modello di sicurezza a chiavi asimmetriche.

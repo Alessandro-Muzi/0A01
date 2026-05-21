@@ -1,0 +1,38 @@
+# Include eventuali file di configurazione aggiuntivi dalla directory interfaces.d/
+source /etc/network/interfaces.d/*
+
+# Interfaccia di loopback (localhost)
+auto lo
+iface lo inet loopback
+
+# --- WAN (Bridge VirtualBox) ---
+# Configurazione statica per evitare interferenze di systemd-networkd
+auto enp0s3
+iface enp0s3 inet static
+address 192.168.1.4/24
+gateway 192.168.1.1
+# DNS di fallback pubblici (il DNS primario 10.0.20.100 verrà configurato in resolv.conf)
+dns-nameservers 1.1.1.1 8.8.8.8
+
+# --- LAN1 (Client Linux: Fedora 10.0.10.101, Ubuntu 10.0.10.102) ---
+auto enp0s8
+iface enp0s8 inet static
+  address 10.0.10.1/24
+
+# --- LAN2 (Windows Server / Domain Controller / DNS 10.0.20.100) ---
+auto enp0s9
+iface enp0s9 inet static
+address 10.0.20.1/24
+
+
+# RESOLV.CONF - File reso immutabile con chattr +i /etc/resolv.conf per impedire a systemd-resolved di sovrascriverlo al riavvio.
+
+# Dominio di ricerca predefinito: permette di risolvere gli hostname corti (es. 'dc' invece di 'dc.lab.local')
+search lab.local
+
+# DNS primario: Domain Controller Windows (autoritativo per lab.local e Active Directory)
+nameserver 10.0.20.100
+
+# DNS di fallback pubblici: usati se il DC non è raggiungibile
+nameserver 8.8.8.8
+nameserver 1.1.1.1

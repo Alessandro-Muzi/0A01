@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# Sorgente
+SOURCE="/srv/samba/"
+
+# Destinazione locale
+BACKUP_ROOT="/backup/samba"
+
+# Numero backup da mantenere
+RETENTION=7
+
+# Data backup
+DATE=$(date +"%Y-%m-%d")
+
+# Cartella backup corrente
+DEST="${BACKUP_ROOT}/backup_${DATE}"
+
+LOGFILE="/var/log/backup-samba.log"
+
+
+# Crea directory root se non esiste
+mkdir -p "${BACKUP_ROOT}"
+
+log () {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "${LOGFILE}"
+}
+
+
+log "___Avvio Backup__"
+
+# Backup rsync
+#-aAXv:      -a: modalità archivio , preserva permessi, ownership, timestap, symlink, dir ricorsive
+#            -A: preserva ACL
+#            -X: preserva extended attributes 
+#            -v: verbose
+if rsync -aAXv --delete "${SOURCE}" "${DEST}" >> "${LOGFILE}" 2>&1; then
+     log "SUCCESSO: Backup completato in ${DEST}"
+else
+     log "ERRORE: Backup fallito"
+     exit 1
+fi
+
+# Rotazione: elimina backup più vecchi
+cd "${BACKUP_ROOT}" || exit 1
+
+# 1. ls -1dt */  -> Elenca le cartelle (-d) su una singola colonna (-1) ordinate dalla più recente alla più vecchia (-t)
+# 2. tail -n +8 -> Salta le prime 7 cartelle (i backup da tenere) e prende solo quelle dall'ottava in poi
+OLD_BACKUPS=$(ls -1dt backup_* 2>/dev/null | tail -n +$((RETENTION + 1)))
+  
+for OLD in ${OLD_BACKUPS}; do
+    log "Elimino vecchio backup: ${OLD}"
+    rm -rf "${OLD}"
+done
+
+log "__Fine backup__"
+
+----------------------------------------------------------------------------------
+crontab -e
+0 2 * * * /usr/local/bin/backup-samba.sh >> /var/log/backup-samba.log 2>&1
+## esegue il backup ogni notte alle 02:00 ##
+

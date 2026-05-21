@@ -1,0 +1,132 @@
+##Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, 
+##Loki e Promtail gestiscono i log, Grafana li visualizza sulla porta 3000.
+
+
+PROMTAIL (config.yml)
+-----------------------------------------------------------------------------------------------------
+
+
+server:
+  # Porta HTTP su cui Promtail espone le sue metriche e l'API
+  http_listen_port: 9080
+  # gRPC disabilitato (0 = non in ascolto)
+  grpc_listen_port: 0
+
+positions:
+  # Segnalibro: salva l'ultima riga letta per evitare duplicati al riavvio
+  filename: /tmp/positions.yaml
+
+clients:
+  # Destinazione: spinge i log verso Loki tramite la rete interna Docker
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets:
+        - localhost
+      labels:
+        # Label per identificare questo job in Grafana (query: {job="varlogs"})
+        job: varlogs
+        # Raccoglie tutti i file .log dentro /var/log/ della macchina host
+        __path__: /var/log/*.log
+
+
+
+
+
+PROMETHEUS (prometheus.yml)
+---------------------------------------------------------------------------------------------------
+
+global:
+  # Intervallo di raccolta metriche: ogni 15 secondi va a "bussare" a tutti i target
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    # Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)
+    static_configs:
+      - targets: ['192.168.1.4:9100']
+
+  - job_name: 'servizi_debian'
+    static_configs:
+      - targets: ['192.168.1.4:9100']
+    # Relabeling: sostituisce l'IP con il FQDN nei grafici Grafana
+    # Invece di '192.168.1.4:9100' compare 'debian.lab.local'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'debian.lab.local'
+
+  - job_name: 'cadvisor'
+    # Metriche dei singoli container Docker tramite rete interna Compose
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+
+
+
+DOCKER (docker-compose.yml)
+---------------------------------------------------------------------------------------------------
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: always
+    volumes:
+      # Monta la configurazione personalizzata dei target e dello scrape interval
+      - /opt/lab-docker/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      # Volume persistente: conserva dashboard e configurazioni tra i riavvii
+      - grafana_data:/var/lib/grafana
+    environment:
+      # Password amministratore (da cambiare in produzione)
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      # Accesso in sola lettura al filesystem host per le metriche dei container
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      # Mapping del runtime Docker (path con wildcard per compatibilità symlink su Debian)
+      - /var/lib/docker/:/var/lib*docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+  loki:
+    image: grafana/loki:2.9.1
+    container_name: loki
+    ports:
+      - "3100:3100"
+    restart: always
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    # Necessario per leggere i log di sistema protetti in /var/log
+    user: root
+    volumes:
+      # Monta i log reali della macchina host dentro il container
+      - /var/log:/var/log
+      - /opt/lab-docker/promtail/config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+
+volumes:
+  # Volume named per la persistenza dei dati Grafana
+  grafana_data:
+
+
+##Usare l'Explore di Grafana con la query {job=~".*"} per vedere quali label stanno effettivamente arrivando a Loki prima di impazzire sul JSON.
