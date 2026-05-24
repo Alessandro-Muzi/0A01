@@ -26,6 +26,9 @@ iptables -A FORWARD -i wg0 -o enp0s9 -j ACCEPT
 iptables -A FORWARD -i wg0 -o enp0s8 -j ACCEPT
 iptables -A FORWARD -i wg0 -o enp0s3 -j ACCEPT
 
+# Permette il traffico di ritorno verso la VPN WireGuard (Fedora) e tra le interfacce
+iptables -A FORWARD -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
 # Forwarding dalla LAN client Linux e dalla rete Windows verso internet
 iptables -A FORWARD -i enp0s8 -o enp0s3 -j ACCEPT
 iptables -A FORWARD -i enp0s9 -o enp0s3 -j ACCEPT
@@ -47,6 +50,11 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 [Unit]
 # Descrizione del servizio mostrata da systemctl status
 Description=Firewall iptables - NAT e regole di rete
+
+# Assicura che lo script venga eseguito solo dopo l'inizializzazione della rete,
+# evitando che la policy DROP venga applicata durante l'avvio dei servizi di sistema
+After=network.target
+
 
 [Service]
 
