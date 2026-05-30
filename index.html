@@ -353,16 +353,15 @@ main {
 
 <section id="premessa">
   <h2>Premessa</h2>
-  <p>Mi presento: sono Alessandro, ho recentemente completato un corso di 300 ore presso il <strong>CEFI</strong>, focalizzato sulla gestione dei sistemi e sulla sicurezza informatica.</p>
+  <<p>Mi presento: sono Alessandro, ho recentemente completato un corso di 300 ore presso il <strong>CEFI</strong>, focalizzato sulla gestione dei sistemi e sulla sicurezza informatica.</p>
 
 <p>Questo repository nasce con l'obiettivo di documentare la creazione di un <strong>ambiente aziendale simulato</strong> in cui il Domain Controller Windows gestisce Active Directory e DNS, mentre i sistemi Debian ospitano tutti i servizi infrastrutturali complementari.</p>
 
-<p>La struttura è la seguente: il server <span class="badge green">Debian 13 "Trixie"</span> (Oracle VM) funge da core dell'infrastruttura, configurato con funzioni di routing e NAT tramite <code>iptables</code> e IP forwarding, oltre alla gestione del servizio <span class="badge">DHCP Kea</span>. Il server ospita 3 interfacce di rete: una in modalità <em>bridge</em> (<code>enp0s3</code>) e due LAN dedicate (LAN1=<code>enp0s8</code>, LAN2=<code>enp0s9</code>).</p>
+<p>La struttura è la seguente: il server <span class="badge green">Debian 13 "Trixie"</span> (Oracle VM) funge da core dell'infrastruttura, configurato con funzioni di routing e NAT tramite <code>iptables</code> e IP forwarding, oltre alla gestione del servizio <code>DHCP Kea</code>. Il server ospita 3 interfacce di rete: una in modalità <em>bridge</em> (<code>enp0s3</code>) e due LAN dedicate (<code>enp0s8</code>, <code>enp0s9</code>).</p>
 
-<p>La prima LAN (<span class="badge yellow">10.0.10.1</span>) è destinata a due client Linux (<span class="badge green">Fedora</span> <span class="badge yellow">10.0.10.101</span> e <span class="badge green">Ubuntu</span> <span class="badge yellow">10.0.10.102</span>), mentre la seconda (<span class="badge yellow">10.0.20.1</span>) collega il server Debian alla macchina <span class="badge green">Windows Server</span> (Controller di Dominio), che gestisce Active Directory e il servizio DNS per l'intera struttura. Tutto il traffico della rete privata transita crittografato all'interno del tunnel <span class="badge">WireGuard</span> (VPN).</p>
+<p>La prima LAN (<span class="badge yellow">10.0.10.1</span>) è destinata a due client Linux (<span class="badge green">Fedora</span> <span class="badge yellow">10.0.10.101</span> e <span class="badge green">Ubuntu</span> <span class="badge yellow">10.0.10.102</span>), mentre la seconda (<span class="badge yellow">10.0.20.1</span>) collega il server Debian alla macchina <span class="badge green">Windows Server</span> (Controller di Dominio), che gestisce Active Directory e DNS per l'intera struttura. Tutto il traffico transita crittografato nel tunnel <span class="badge">WireGuard</span> (VPN).</p>
 
-<p>Samba, installato su Debian, si interfaccia con AD tramite <code>winbind</code> e gestisce un Print Server condiviso via <span class="badge">CUPS</span>. Lo stack di monitoring composto da <span class="badge">Grafana</span>, <span class="badge">Prometheus</span>, <span class="badge">Loki</span>, <span class="badge">Promtail</span> e <span class="badge">cAdvisor</span>, containerizzato in <span class="badge">Docker</span>, si occupa del monitoraggio e del logging dello stato delle macchine e della rete. Infine, <span class="badge">Rsync</span> e <span class="badge">Cron</span> gestiscono in modo incrementale il backup automatizzato dell'intero ambiente tramite script dedicati.</p>
-</section>
+<p>Samba si interfaccia con AD tramite <code>winbind</code> e gestisce un Print Server condiviso via <code>CUPS</code>. Lo stack di monitoring <span class="badge">Grafana · Prometheus · Loki</span>, containerizzato in <span class="badge">Docker</span>, gestisce monitoraggio e logging. Infine <code>Rsync</code> e <code>Cron</code> gestiscono il backup automatizzato tramite script dedicati.</p></section>
 
    <section id="topologia">
     <h2>Topologia</h2>
