@@ -161,7 +161,7 @@ main {
 
 /* ── MOBILE ──────────────────────────────── */
 @media (max-width: 768px) {
-    :root { --sidebar-w: 0px; }
+  :root { --sidebar-w: 0px; }
   
   nav {
     width: 260px;
@@ -182,36 +182,30 @@ main {
     display: flex;
   }
   
-.topo {
-  max-width: 100%;
-  width: 100%;
-}
-}
-.topo-row {
-  grid-template-columns: 1fr !important;
-  gap: 2px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-}
+  .topo {
+    max-width: 100%;
+    width: 100%;
+  }
 
-.topo-row span:first-child {
-  color: var(--accent);
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-}
-
-.topo-row span {
-  word-break: break-word;
-  white-space: normal;
-}
-
-.topo-row.header {
-  display: none;
-}
-  
-  
-  
+  .topo-row {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .topo-row span:first-child {
+    color: var(--accent);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .topo-row span {
+    word-break: break-word;
+    white-space: normal;
+  }
+  .topo-row.header {
+    display: none;
+  }
 }
 
   /* ── PAGE HEADER ─────────────────────────── */
