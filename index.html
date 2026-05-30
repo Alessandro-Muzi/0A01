@@ -188,12 +188,23 @@ main {
   }
 
   .topo-row {
-    grid-template-columns: 1fr;
-    gap: 2px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    .badge {display: inline-block;
-    }
+  grid-template-columns: 1fr;
+  gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.topo-row .badge {
+  color: var(--accent);
+}
+
+.topo-row .badge.yellow {
+  color: var(--warn);
+}
+
+.topo-row .badge.green {
+  color: var(--accent2);
+}
     
   }
   .topo-row span:first-child {
