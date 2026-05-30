@@ -157,12 +157,13 @@ main {
     display: flex;
   }
   
-  .topo {
-  overflow-x: hidden;
+.topo {
+  max-width: 100%;
   width: 100%;
 }
-  .topo-row {
-  grid-template-columns: 1fr;
+}
+.topo-row {
+  grid-template-columns: 1fr !important;
   gap: 2px;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
