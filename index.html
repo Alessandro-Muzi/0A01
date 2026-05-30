@@ -157,6 +157,10 @@ main {
     display: flex;
   }
   
+  .topo {
+  overflow-x: hidden;
+  width: 100%;
+}
   .topo-row {
   grid-template-columns: 1fr;
   gap: 2px;
@@ -178,7 +182,12 @@ main {
 
 .topo-row.header {
   display: none;
+  body {
+  ...
+  overflow-x: hidden;
 }
+}
+  
   
 }
 
