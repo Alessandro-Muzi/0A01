@@ -999,7 +999,7 @@ TrustAnchors          Primary    <span class="val">True</span>
 <span class="comment">## --delete rimuove dalla destinazione i file che non esistono più nella sorgente.</span>
 <span class="key">if</span> <span class="key">rsync</span> <span class="flag">-aAXv</span> <span class="flag">--delete</span> <span class="path">"${SOURCE}"</span> <span class="path">"${DEST}"</span> >> <span class="path">"${LOGFILE}"</span> 2>&1; <span class="key">then</span>
      <span class="key">log</span> <span class="val">"SUCCESSO: Backup completato in ${DEST}"</span>
-<span class="key">else</span>
+     <span class="key">else</span>
      <span class="key">log</span> <span class="val">"ERRORE: Backup fallito"</span>
      <span class="key">exit</span> <span class="val">1</span>
 <span class="key">fi</span>
