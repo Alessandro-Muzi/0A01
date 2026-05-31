@@ -390,6 +390,9 @@ main {
   <p>La prima LAN (10.0.10.1) è destinata a due client Linux (Fedora 10.0.10.101 e Ubuntu 10.0.10.102), mentre la seconda (10.0.20.1) collega il server Debian alla macchina Windows Server (Controller di Dominio), che gestisce Active Directory e il servizio DNS per l'intera struttura. Tutto il traffico della rete privata transita crittografato all'interno del tunnel <strong>WireGuard</strong> (VPN).</p>
 
   <p>Samba, installato su Debian, si interfaccia con AD tramite <code>winbind</code> e gestisce un Print Server condiviso via CUPS. Lo stack di monitoring composto da <strong>Grafana, Prometheus, Loki, Promtail e cAdvisor</strong>, containerizzato in Docker, si occupa del monitoraggio e del logging dello stato delle macchine e della rete. Infine, <strong>Rsync e Cron</strong> gestiscono in modo incrementale il backup automatizzato dell'intero ambiente tramite script dedicati.</p>
+</section>
+
+   <section id="topologia">
     <h2>Topologia</h2>
     <div class="topo">
       <div class="topo-row header">
@@ -431,29 +434,25 @@ main {
     <pre>
 <span class="comment"># Include eventuali file di configurazione aggiuntivi dalla directory interfaces.d/</span>
 source /etc/network/interfaces.d/*
-
 <span class="comment"># Interfaccia di loopback (localhost)</span>
-<span class="sec">auto lo</span>
-iface lo inet loopback
-
+<span class="sec">auto</span> <span class="iface">lo</span>
+iface <span class="iface">lo</span> inet loopback
 <span class="comment"># --- WAN (Bridge VirtualBox) ---</span>
 <span class="comment"># Configurazione statica per evitare interferenze di systemd-networkd</span>
-<span class="sec">auto enp0s3</span>
-iface enp0s3 inet static
-  <span class="key">address</span>         <span class="val">192.168.1.4/24</span>
-  <span class="key">gateway</span>         <span class="val">192.168.1.1</span>
+<span class="sec">auto</span> <span class="iface">enp0s3</span>
+iface <span class="iface">enp0s3</span> inet static
+  <span class="key">address</span>         <span class="ip">192.168.1.4/24</span>
+  <span class="key">gateway</span>         <span class="ip">192.168.1.1</span>
   <span class="comment"># DNS di fallback pubblici (il DNS primario 10.0.20.100 verrà configurato in resolv.conf)</span>
-  <span class="key">dns-nameservers</span> <span class="val">1.1.1.1 8.8.8.8</span>
-
+  <span class="key">dns-nameservers</span> <span class="ip">1.1.1.1</span> <span class="ip">8.8.8.8</span>
 <span class="comment"># --- LAN1 (Client Linux: Fedora 10.0.10.101, Ubuntu 10.0.10.102) ---</span>
-<span class="sec">auto enp0s8</span>
-iface enp0s8 inet static
-  <span class="key">address</span>         <span class="val">10.0.10.1/24</span>
-
+<span class="sec">auto</span> <span class="iface">enp0s8</span>
+iface <span class="iface">enp0s8</span> inet static
+  <span class="key">address</span>         <span class="ip">10.0.10.1/24</span>
 <span class="comment"># --- LAN2 (Windows Server / Domain Controller / DNS 10.0.20.100) ---</span>
-<span class="sec">auto enp0s9</span>
-iface enp0s9 inet static
-  <span class="key">address</span>         <span class="val">10.0.20.1/24</span>
+<span class="sec">auto</span> <span class="iface">enp0s9</span>
+iface <span class="iface">enp0s9</span> inet static
+  <span class="key">address</span>         <span class="ip">10.0.20.1/24</span>
 </pre>
 
     <h3>/etc/resolv.conf</h3>
@@ -463,13 +462,11 @@ iface enp0s9 inet static
     <pre>
 <span class="comment"># Dominio di ricerca predefinito: permette di risolvere gli hostname corti (es. 'dc' invece di 'dc.lab.local')</span>
 <span class="key">search</span> <span class="val">lab.local</span>
-
 <span class="comment"># DNS primario: Domain Controller Windows (autoritativo per lab.local e Active Directory)</span>
-<span class="key">nameserver</span> <span class="val">10.0.20.100</span>
-
+<span class="key">nameserver</span> <span class="ip">10.0.20.100</span>
 <span class="comment"># DNS di fallback pubblici: usati se il DC non è raggiungibile</span>
-<span class="key">nameserver</span> <span class="val">8.8.8.8</span>
-<span class="key">nameserver</span> <span class="val">1.1.1.1</span>
+<span class="key">nameserver</span> <span class="ip">8.8.8.8</span>
+<span class="key">nameserver</span> <span class="ip">1.1.1.1</span>
 </pre>
   </section>
 
@@ -488,75 +485,75 @@ iface enp0s9 inet static
 
     <h3>/etc/kea/kea-dhcp4.conf</h3>
     <pre>
-{
-  <span class="sec">"Dhcp4"</span>: {
-    <span class="key">"interfaces-config"</span>: {
+<span class="hl-b0">{</span>
+  <span class="sec">"Dhcp4"</span>: <span class="hl-b0">{</span>
+    <span class="key">"interfaces-config"</span>: <span class="hl-b1">{</span>
       <span class="comment">// Interfacce di ascolto del servizio</span>
-      <span class="key">"interfaces"</span>: [ <span class="val">"enp0s8"</span>, <span class="val">"enp0s9"</span> ]
-    },
+      <span class="key">"interfaces"</span>: <span class="hl-b2">[</span> <span class="iface">"enp0s8"</span>, <span class="iface">"enp0s9"</span> <span class="hl-b2">]</span>
+    <span class="hl-b1">}</span>,
 
     <span class="key">"valid-lifetime"</span>: <span class="val">86400</span>,
 
-    <span class="key">"subnet4"</span>: [
-      {
+    <span class="key">"subnet4"</span>: <span class="hl-b1">[</span>
+      <span class="hl-b2">{</span>
         <span class="key">"id"</span>: <span class="val">1</span>,
         <span class="comment">// LAN1 — Segmento Client Linux</span>
-        <span class="key">"subnet"</span>: <span class="val">"10.0.10.0/24"</span>,
-        <span class="key">"pools"</span>: [
-          { <span class="key">"pool"</span>: <span class="val">"10.0.10.100-10.0.10.200"</span> }
-        ],
-        <span class="key">"option-data"</span>: [
-          {
+        <span class="key">"subnet"</span>: <span class="ip">"10.0.10.0/24"</span>,
+        <span class="key">"pools"</span>: <span class="hl-b3">[</span>
+          <span class="hl-b0">{</span> <span class="key">"pool"</span>: <span class="ip">"10.0.10.100-10.0.10.200"</span> <span class="hl-b0">}</span>
+        <span class="hl-b3">]</span>,
+        <span class="key">"option-data"</span>: <span class="hl-b3">[</span>
+          <span class="hl-b0">{</span>
             <span class="comment">// Gateway interno LAN1</span>
             <span class="key">"name"</span>: <span class="val">"routers"</span>,
-            <span class="key">"data"</span>: <span class="val">"10.0.10.1"</span>
-          },
-          { 
+            <span class="key">"data"</span>: <span class="ip">"10.0.10.1"</span>
+          <span class="hl-b0">}</span>,
+          <span class="hl-b0">{</span>
             <span class="comment">// Route statica esadecimale verso VPN</span>
             <span class="key">"name"</span>: <span class="val">"classless-static-route"</span>,
             <span class="key">"data"</span>: <span class="val">"180a08000a000a01"</span>,
             <span class="key">"csv-format"</span>: <span class="val">false</span>
-          },
-          {
+          <span class="hl-b0">}</span>,
+          <span class="hl-b0">{</span>
             <span class="comment">// Puntamento al DNS di Active Directory</span>
             <span class="key">"name"</span>: <span class="val">"domain-name-servers"</span>,
-            <span class="key">"data"</span>: <span class="val">"10.0.20.100"</span>
-          }
-        ]
-      },
-      {
+            <span class="key">"data"</span>: <span class="ip">"10.0.20.100"</span>
+          <span class="hl-b0">}</span>
+        <span class="hl-b3">]</span>
+      <span class="hl-b2">}</span>,
+      <span class="hl-b2">{</span>
         <span class="key">"id"</span>: <span class="val">2</span>,
         <span class="comment">// LAN2 — Segmento Windows Server DC</span>
-        <span class="key">"subnet"</span>: <span class="val">"10.0.20.0/24"</span>,
-        <span class="key">"pools"</span>: [
-          { <span class="key">"pool"</span>: <span class="val">"10.0.20.100-10.0.20.200"</span> }
-        ],
-        <span class="key">"option-data"</span>: [
-          {
+        <span class="key">"subnet"</span>: <span class="ip">"10.0.20.0/24"</span>,
+        <span class="key">"pools"</span>: <span class="hl-b3">[</span>
+          <span class="hl-b0">{</span> <span class="key">"pool"</span>: <span class="ip">"10.0.20.100-10.0.20.200"</span> <span class="hl-b0">}</span>
+        <span class="hl-b3">]</span>,
+        <span class="key">"option-data"</span>: <span class="hl-b3">[</span>
+          <span class="hl-b0">{</span>
             <span class="comment">// Gateway interno LAN2</span>
             <span class="key">"name"</span>: <span class="val">"routers"</span>,
-            <span class="key">"data"</span>: <span class="val">"10.0.20.1"</span>
-          },
-          {
+            <span class="key">"data"</span>: <span class="ip">"10.0.20.1"</span>
+          <span class="hl-b0">}</span>,
+          <span class="hl-b0">{</span>
             <span class="comment">// Route statica esadecimale verso VPN</span>
             <span class="key">"name"</span>: <span class="val">"classless-static-route"</span>,
             <span class="key">"data"</span>: <span class="val">"180a08000a001401"</span>,
             <span class="key">"csv-format"</span>: <span class="val">false</span>
-          },
-          {
+          <span class="hl-b0">}</span>,
+          <span class="hl-b0">{</span>
             <span class="comment">// Puntamento al DNS di Active Directory</span>
             <span class="key">"name"</span>: <span class="val">"domain-name-servers"</span>,
-            <span class="key">"data"</span>: <span class="val">"10.0.20.100"</span>
-          }
-        ]
-      }
-    ]
-  }
-}
+            <span class="key">"data"</span>: <span class="ip">"10.0.20.100"</span>
+          <span class="hl-b0">}</span>
+        <span class="hl-b3">]</span>
+      <span class="hl-b2">}</span>
+    <span class="hl-b1">]</span>
+  <span class="hl-b0">}</span>
+<span class="hl-b0">}</span>
 </pre>
   </section>
 
- <section id="firewall">
+<section id="firewall">
     <h2>Firewall — iptables &amp; Packet Forwarding</h2>
     <p>La sicurezza perimetrale e il routing interno sono gestiti tramite uno script <code>iptables</code> nativo. Il firewall implementa una politica di tipo <em>Whitelisting</em> (DROP di default), isola e unisce selettivamente i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet.</p>
     
@@ -569,49 +566,49 @@ iface enp0s9 inet static
 <span class="comment">#!/bin/bash</span>
 
 <span class="comment"># Svuota le regole preesistenti e azzera le tabelle di NAT</span>
-<span class="key">iptables</span> -F
-<span class="key">iptables</span> -t nat -F
+<span class="key">iptables</span> <span class="flag">-F</span>
+<span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-F</span>
 
 <span class="comment"># Consente tutto il traffico interno sull'interfaccia di loopback</span>
-<span class="key">iptables</span> -A INPUT -i <span class="val">lo</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">INPUT</span> <span class="flag">-i</span> <span class="iface">lo</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Mantiene attive le connessioni in entrata già stabilite o correlate (Stateful Inspection)</span>
-<span class="key">iptables</span> -A INPUT -m conntrack --ctstate <span class="val">ESTABLISHED,RELATED</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">INPUT</span> <span class="flag">-m</span> conntrack <span class="flag">--ctstate</span> <span class="val">ESTABLISHED,RELATED</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Servizi esposti sul Gateway: SSH (22), WireGuard VPN (51820) e protocollo diagnostico ICMP</span>
-<span class="key">iptables</span> -A INPUT -p tcp --dport <span class="val">22</span> -j ACCEPT
-<span class="key">iptables</span> -A INPUT -p udp --dport <span class="val">51820</span> -j ACCEPT
-<span class="key">iptables</span> -A INPUT -p icmp -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">INPUT</span> <span class="flag">-p</span> tcp <span class="flag">--dport</span> <span class="port">22</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">INPUT</span> <span class="flag">-p</span> udp <span class="flag">--dport</span> <span class="port">51820</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">INPUT</span> <span class="flag">-p</span> icmp <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Configura il NAT (Masquerading) sull'interfaccia WAN per consentire l'uscita a Internet</span>
-<span class="key">iptables</span> -t nat -A POSTROUTING -o <span class="val">enp0s3</span> -j MASQUERADE
+<span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-A</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span>
 
 <span class="comment"># Consente il transito dei pacchetti per tutte le connessioni già stabilite</span>
-<span class="key">iptables</span> -A FORWARD -m conntrack --ctstate <span class="val">ESTABLISHED,RELATED</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-m</span> conntrack <span class="flag">--ctstate</span> <span class="val">ESTABLISHED,RELATED</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Permette l'inoltro del traffico dalla VPN verso le reti interne LAN1, LAN2 e la WAN</span>
-<span class="key">iptables</span> -A FORWARD -i <span class="val">wg0</span> -o <span class="val">enp0s9</span> -j ACCEPT
-<span class="key">iptables</span> -A FORWARD -i <span class="val">wg0</span> -o <span class="val">enp0s8</span> -j ACCEPT
-<span class="key">iptables</span> -A FORWARD -i <span class="val">wg0</span> -o <span class="val">enp0s3</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-o</span> <span class="iface">enp0s9</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-o</span> <span class="iface">enp0s8</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Gestisce lo stato delle connessioni di ritorno destinate alla VPN</span>
-<span class="key">iptables</span> -A FORWARD -o <span class="val">wg0</span> -m conntrack --ctstate <span class="val">ESTABLISHED,RELATED</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-m</span> conntrack <span class="flag">--ctstate</span> <span class="val">ESTABLISHED,RELATED</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Instrada il traffico in uscita verso Internet per i client di LAN1 e LAN2</span>
-<span class="key">iptables</span> -A FORWARD -i <span class="val">enp0s8</span> -o <span class="val">enp0s3</span> -j ACCEPT
-<span class="key">iptables</span> -A FORWARD -i <span class="val">enp0s9</span> -o <span class="val">enp0s3</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">enp0s8</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">enp0s9</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Abilita la comunicazione bidirezionale diretta tra i segmenti di rete LAN1 e LAN2</span>
-<span class="key">iptables</span> -A FORWARD -i <span class="val">enp0s9</span> -o <span class="val">enp0s8</span> -j ACCEPT
-<span class="key">iptables</span> -A FORWARD -i <span class="val">enp0s8</span> -o <span class="val">enp0s9</span> -j ACCEPT
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">enp0s9</span> <span class="flag">-o</span> <span class="iface">enp0s8</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">enp0s8</span> <span class="flag">-o</span> <span class="iface">enp0s9</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Imposta le policy di Whitelisting: blocca tutto il traffico non esplicitamente autorizzato</span>
-<span class="key">iptables</span> -P INPUT <span class="val">DROP</span>
-<span class="key">iptables</span> -P FORWARD <span class="val">DROP</span>
-<span class="key">iptables</span> -P OUTPUT <span class="val">ACCEPT</span>
+<span class="key">iptables</span> <span class="flag">-P</span> <span class="chain">INPUT</span> <span class="target">DROP</span>
+<span class="key">iptables</span> <span class="flag">-P</span> <span class="chain">FORWARD</span> <span class="target">DROP</span>
+<span class="key">iptables</span> <span class="flag">-P</span> <span class="chain">OUTPUT</span> <span class="target">ACCEPT</span>
 
 <span class="comment"># Abilita il Packet Forwarding a livello di kernel Linux</span>
-<span class="key">echo</span> <span class="val">1</span> > /proc/sys/net/ipv4/ip_forward
+<span class="key">echo</span> <span class="val">1</span> > /proc/sys/net/ipv4/<span class="ip">ip_forward</span>
 </pre>
 
     <h3>Esecuzione automatica dello script (/etc/systemd/system/firewall.service)</h3>
@@ -628,7 +625,7 @@ iface enp0s9 inet static
 <span class="comment"># Assicura che il firewall parta automaticamente in modalità multi-utente</span>
 <span class="key">WantedBy</span>    = <span class="val">multi-user.target</span>
 </pre>
-  </section>
+</section>
 
 <section id="vpn">
     <h2>VPN — WireGuard</h2>
@@ -636,29 +633,23 @@ iface enp0s9 inet static
     <div class="callout yellow">
       Le chiavi private e pubbliche reali sono state oscurate (<code>*</code>) per motivi di sicurezza.
     </div>
-
     <h3>wg0.conf — Configurazione del Server (Gateway Debian)</h3>
     <pre>
 <span class="sec">[Interface]</span>
 <span class="comment">// Indirizzo IP e subnet dedicati alla rete privata virtuale (VPN)</span>
-<span class="key">Address</span>    = <span class="val">10.8.0.1/24</span>
-
+<span class="key">Address</span>    = <span class="ip">10.8.0.1/24</span>
 <span class="comment">// Disabilita il salvataggio automatico delle modifiche apportate a runtime via CLI</span>
 <span class="key">SaveConfig</span> = <span class="val">False</span>
-
-<span class="comment">// Regole iptables applicate all'avvio: abilitano l'inoltro e il NAT (Incolonnate sotto l'uguale)</span>
-<span class="key">PostUp</span>     = <span class="val">iptables -A FORWARD -i wg0 -j ACCEPT; </span>
-             <span class="val">iptables -A FORWARD -o wg0 -j ACCEPT; </span>
-             <span class="val">iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE</span>
-
+<span class="comment">// Regole iptables applicate all'avvio: abilitano l'inoltro e il NAT</span>
+<span class="key">PostUp</span>     = <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+             <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+             <span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-A</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span>
 <span class="comment">// Rimuove le regole iptables dedicate alla VPN al momento dello spegnimento</span>
-<span class="key">PostDown</span>   = <span class="val">iptables -D FORWARD -i wg0 -j ACCEPT; </span>
-             <span class="val">iptables -D FORWARD -o wg0 -j ACCEPT; </span>
-             <span class="val">iptables -t nat -D POSTROUTING -o enp0s3 -j MASQUERADE</span>
-
+<span class="key">PostDown</span>   = <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+             <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+             <span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-D</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span>
 <span class="comment">// Porta UDP di ascolto principale su cui il server attende le connessioni in ingresso</span>
-<span class="key">ListenPort</span> = <span class="val">51820</span>
-
+<span class="key">ListenPort</span> = <span class="port">51820</span>
 <span class="comment">// Chiave privata crittografica del server gateway</span>
 <span class="key">PrivateKey</span> = <span class="val">*</span>
 
@@ -666,19 +657,19 @@ iface enp0s9 inet static
 <span class="comment">// Chiave pubblica identificativa del primo client (es. Domain Controller Windows)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
 <span class="comment">// Indirizzo IP statico univoco assegnato al primo peer all'interno del tunnel</span>
-<span class="key">AllowedIPs</span> = <span class="val">10.8.0.2/32</span>
+<span class="key">AllowedIPs</span> = <span class="ip">10.8.0.2/32</span>
 
 <span class="sec">[Peer]</span>
 <span class="comment">// Chiave pubblica identificativa del secondo client (es. Client Linux Fedora)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
 <span class="comment">// Indirizzo IP statico univoco assegnato al secondo peer all'interno del tunnel</span>
-<span class="key">AllowedIPs</span> = <span class="val">10.8.0.3/32</span>
+<span class="key">AllowedIPs</span> = <span class="ip">10.8.0.3/32</span>
 
 <span class="sec">[Peer]</span>
 <span class="comment">// Chiave pubblica identificativa del terzo client (es. Client Linux Ubuntu)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
 <span class="comment">// Indirizzo IP statico univoco assegnato al terzo peer all'interno del tunnel</span>
-<span class="key">AllowedIPs</span> = <span class="val">10.8.0.4/32</span>
+<span class="key">AllowedIPs</span> = <span class="ip">10.8.0.4/32</span>
 </pre>
   </section>
 
@@ -686,20 +677,20 @@ iface enp0s9 inet static
 
   <section id="ad">
     <h2>Servizi di Directory e Risoluzione dei Nomi (Active Directory &amp; DNS)</h2>
-    <p>Questa sezione documenta l'infrastruttura di identità e risoluzione dei nomi del laboratorio, centralizzata su un Domain Controller <strong>Windows Server</strong> (IP statico: <code>10.0.20.100</code>). L'estrazione dei dati e la manutenzione ordinaria del server sono state eseguite sfruttando la catena di accesso remota e i tunnel VPN/SSH dal Gateway Debian, una configurazione ideale per testare l'interoperabilità e la robustezza della rete.Il flusso si sviluppa a partire dalla <em>Macchina fisica:</em><p>
- <p>
-  <span style="color: var(--accent); font-family: var(--mono); font-size: 13px;">
-    <code>Macchina fisica (CMD)</code> ➔ <code>SSH su Fedora/Debian</code> ➔ <code>Cockpit (Browser)</code> ➔ <code>SSH verso il DC Windows</code> ➔ <code>PowerShell</code>
-  </span>
-</p>
+    <p>Questa sezione documenta l'infrastruttura di identità e risoluzione dei nomi del laboratorio, centralizzata su un Domain Controller <strong>Windows Server</strong> (IP statico: <code>10.0.20.100</code>). L'estrazione dei dati e la manutenzione ordinaria del server sono state eseguite sfruttando la catena di accesso remota e i tunnel VPN/SSH dal Gateway Debian, una configurazione ideale per testare l'interoperabilità e la robustezza della rete. Il flusso si sviluppa a partire dalla <em>Macchina fisica:</em></p>
+    <p>
+      <span style="color: var(--accent); font-family: var(--mono); font-size: 13px;">
+        <code>Macchina fisica (CMD)</code> ➔ <code>SSH su Fedora/Debian</code> ➔ <code>Cockpit (Browser)</code> ➔ <code>SSH verso il DC Windows</code> ➔ <code>PowerShell</code>
+      </span>
+    </p>
 
     <h3>Architettura del Dominio e Unità Organizzative (AD DS)</h3>
-    <p>Il cuore della gestione delle identità è un dominio Active Directory denominato <code>lab.local</code>. La verifica dei parametri logici della foresta e la mappatura strutturale delle risorse (Utenti, Gruppi e Computer) mostrano un'alberatura logica pulita e l'adozione di livelli funzionali moderni.<p>
-    <p> Il livello di funzionalità del dominio e della foresta è impostato su Windows Server 2016: questo rappresenta il livello logico standard e ottimale introdotto da Microsoft, garantendo la totale compatibilità con le funzionalità moderne di Active Directory anche nel caso di aggiornamenti o edizioni successive di Windows Server.</p>
+    <p>Il cuore della gestione delle identità è un dominio Active Directory denominato <code>lab.local</code>. La verifica dei parametri logici della foresta e la mappatura strutturale delle risorse (Utenti, Gruppi e Computer) mostrano un'alberatura logica pulita e l'adozione di livelli funzionali moderni.</p>
+    <p>Il livello di funzionalità del dominio e della foresta è impostato su Windows Server 2016: questo rappresenta il livello logico standard e ottimale introdotto da Microsoft, garantendo la totale compatibilità con le funzionalità moderne di Active Directory anche nel caso di aggiornamenti o edizioni successive di Windows Server.</p>
     
     <pre>
 <span class="comment"># Verifica del livello funzionale della foresta e del dominio Active Directory via SSH</span>
-PS C:\> <span class="key">Get-ADDomain</span> | <span class="key">Select-Object</span> Name, DomainMode, ForestMode | <span class="key">Format-List</span>
+<span class="sec">PS C:\></span> <span class="key">Get-ADDomain</span> | <span class="key">Select-Object</span> Name, DomainMode, ForestMode | <span class="key">Format-List</span>
 
 Name       : <span class="val">lab</span>
 DomainMode : <span class="val">Windows2016Domain</span>
@@ -740,15 +731,15 @@ ForestMode : <span class="val">Windows2016Forest</span>
     
     <pre>
 <span class="comment"># Query per estrarre lo stato, la tipologia e l'integrazione AD di tutte le zone DNS attive</span>
-PS C:\Users\Administrator> <span class="key">Get-DnsServerZone</span> | <span class="key">Select-Object</span> ZoneName, ZoneType, IsDsIntegrated | <span class="key">Format-Table</span> -AutoSize
+<span class="sec">PS C:\Users\Administrator></span> <span class="key">Get-DnsServerZone</span> | <span class="key">Select-Object</span> ZoneName, ZoneType, IsDsIntegrated | <span class="key">Format-Table</span> -AutoSize
 
 ZoneName              ZoneType   IsDsIntegrated
 --------              --------   --------------
 _msdcs.lab.local      Primary    <span class="val">True</span>
 0.in-addr.arpa        Primary    False
-10.0.10.in-addr.arpa  Primary    <span class="val">True</span>
+<span class="ip">10.0.10</span>.in-addr.arpa  Primary    <span class="val">True</span>
 127.in-addr.arpa      Primary    False
-20.0.100.in-addr.arpa Primary    <span class="val">True</span>
+<span class="ip">20.0.100</span>.in-addr.arpa Primary    <span class="val">True</span>
 255.in-addr.arpa      Primary    False
 a                     Forwarder  False
 b                     Forwarder  False
@@ -771,7 +762,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <pre>
 <span class="sec">[Global]</span>
 <span class="comment">## Forza la shell predefinita per gli utenti di dominio che effettuano l'accesso</span>
-<span class="key">template shell</span> = <span class="val">/bin/bash</span>
+<span class="key">template shell</span> = <span class="path">/bin/bash</span>
 
 <span class="comment">## Nome NetBIOS del dominio Active Directory</span>
 <span class="key">workgroup</span> = <span class="val">LAB</span>
@@ -804,7 +795,7 @@ TrustAnchors          Primary    <span class="val">True</span>
 <span class="sec">[Printers]</span>
 <span class="comment">## Configurazione di default per l'esposizione automatica delle stampanti di sistema</span>
 <span class="key">comment</span> = <span class="val">All Printers</span>
-<span class="key">path</span> = <span class="val">/var/spool/samba</span>
+<span class="key">path</span> = <span class="path">/var/spool/samba</span>
 <span class="key">browseable</span> = <span class="val">yes</span>
 <span class="key">printable</span> = <span class="val">yes</span>
 <span class="key">guest ok</span> = <span class="val">yes</span>
@@ -812,14 +803,14 @@ TrustAnchors          Primary    <span class="val">True</span>
 
 <span class="sec">[Print$]</span>
 <span class="comment">## Area di storage per i driver delle stampanti condivise Windows</span>
-<span class="key">path</span> = <span class="val">/var/lib/samba/printers</span>
+<span class="key">path</span> = <span class="path">/var/lib/samba/printers</span>
 <span class="key">browseable</span> = <span class="val">yes</span>
 <span class="key">read only</span> = <span class="val">yes</span>
 
 <span class="sec">[ProgettiDev]</span>
 <span class="comment">## --- CONDIVISIONE IBRIDA APPLICATIVA ---</span>
 <span class="comment">## Percorso fisico sul file system locale di Debian</span>
-<span class="key">path</span> = <span class="val">/srv/samba/progetti_dev</span>
+<span class="key">path</span> = <span class="path">/srv/samba/progetti_dev</span>
 <span class="comment">## SBARRAMENTO DI SICUREZZA: Solo gli utenti appartenenti al gruppo globale "G_Sviluppatori"</span>
 <span class="comment">## censito dentro Windows Active Directory possono accedere a questa cartella.</span>
 <span class="key">valid users</span> = <span class="val">@"LAB\G_Sviluppatori"</span>
@@ -828,15 +819,16 @@ TrustAnchors          Primary    <span class="val">True</span>
 
 <span class="sec">[dev_share]</span>
 <span class="comment">## --- Area di storage condivisa per l'ambiente di sviluppo e testing interno ---</span>
-<span class="key">path</span> = <span class="val">/srv/samba/dev</span>
+<span class="key">path</span> = <span class="path">/srv/samba/dev</span>
 <span class="key">read only</span> = <span class="val">no</span>
 <span class="key">browseable</span> = <span class="val">yes</span>
 <span class="key">valid users</span> = <span class="val">@smb_dev_share</span>
 <span class="comment">## Forza l'appartenenza dei file creati al gruppo di sviluppo locale</span>
 <span class="key">force groups</span> = <span class="val">smb_dev_share</span>
 <span class="comment">## Maschere restrittive sui permessi (POSIX): File in 660, directory con Sticky Bit e SGID in 2770</span>
-<span class="key">create mask</span> = <span class="val">0660</span>
-<span class="key">directory mask</span> = <span class="val">2770</span>
+<span class="key">create mask</span> = <span class="port">0660</span>
+<span class="key">directory mask</span> = <span class="port">2770</span>
+</pre>
 </pre>
   <!-- DOCKER -->
 <section id="docker">
@@ -847,17 +839,17 @@ TrustAnchors          Primary    <span class="val">True</span>
   <pre>
 <span class="sec">server:</span>
   <span class="comment"># Porta HTTP su cui Promtail espone le sue metriche e l'API</span>
-  <span class="key">http_listen_port:</span> <span class="val">9080</span>
+  <span class="key">http_listen_port:</span> <span class="port">9080</span>
   <span class="comment"># gRPC disabilitato (0 = non in ascolto)</span>
-  <span class="key">grpc_listen_port:</span> <span class="val">0</span>
+  <span class="key">grpc_listen_port:</span> <span class="port">0</span>
 
 <span class="sec">positions:</span>
   <span class="comment"># Segnalibro: salva l'ultima riga letta per evitare duplicati al riavvio</span>
-  <span class="key">filename:</span> <span class="val">/tmp/positions.yaml</span>
+  <span class="key">filename:</span> <span class="path">/tmp/positions.yaml</span>
 
 <span class="sec">clients:</span>
   <span class="comment"># Destinazione: spinge i log verso Loki tramite la rete interna Docker</span>
-  <span class="key">- url:</span> <span class="val">http://loki:3100/loki/api/v1/push</span>
+  <span class="key">- url:</span> http://loki:<span class="port">3100</span>/loki/api/v1/push
 
 <span class="sec">scrape_configs:</span>
   <span class="key">- job_name:</span> <span class="val">system</span>
@@ -868,7 +860,7 @@ TrustAnchors          Primary    <span class="val">True</span>
         <span class="comment"># Label per identificare questo job in Grafana (query: {job="varlogs"})</span>
         <span class="key">job:</span> <span class="val">varlogs</span>
         <span class="comment"># Raccoglie tutti i file .log dentro /var/log/ della macchina host</span>
-        <span class="key">__path__:</span> <span class="val">/var/log/*.log</span>
+        <span class="key">__path__:</span> <span class="path">/var/log/*.log</span>
 </pre>
 
   <h3>PROMETHEUS (prometheus.yml)</h3>
@@ -881,11 +873,11 @@ TrustAnchors          Primary    <span class="val">True</span>
   <span class="key">- job_name:</span> <span class="val">'node_exporter'</span>
     <span class="comment"># Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)</span>
     <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [<span class="val">'192.168.1.4:9100'</span>]
+      <span class="key">- targets:</span> [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
 
   <span class="key">- job_name:</span> <span class="val">'servizi_debian'</span>
     <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [<span class="val">'192.168.1.4:9100'</span>]
+      <span class="key">- targets:</span> [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
     <span class="comment"># Relabeling: sostituisce l'IP con il FQDN nei grafici Grafana</span>
     <span class="comment"># Invece di '192.168.1.4:9100' compare 'debian.lab.local'</span>
     <span class="key">relabel_configs:</span>
@@ -896,7 +888,7 @@ TrustAnchors          Primary    <span class="val">True</span>
   <span class="key">- job_name:</span> <span class="val">'cadvisor'</span>
     <span class="comment"># Metriche dei singoli container Docker tramite rete interna Compose</span>
     <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [<span class="val">'cadvisor:8080'</span>]
+      <span class="key">- targets:</span> [cadvisor:<span class="port">8080</span>]
 </pre>
 
   <h3>DOCKER (docker-compose.yml)</h3>
@@ -908,19 +900,19 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">restart:</span> <span class="val">always</span>
     <span class="key">volumes:</span>
       <span class="comment"># Monta la configurazione personalizzata dei target e dello scrape interval</span>
-      <span class="key">-</span> <span class="val">/opt/lab-docker/prometheus.yml:/etc/prometheus/prometheus.yml</span>
+      <span class="key">-</span> <span class="path">/opt/lab-docker/prometheus.yml</span>:<span class="path">/etc/prometheus/prometheus.yml</span>
     <span class="key">ports:</span>
-      <span class="key">-</span> <span class="val">"9090:9090"</span>
+      <span class="key">-</span> "<span class="port">9090</span>:<span class="port">9090</span>"
 
   <span class="key">grafana:</span>
     <span class="key">image:</span> <span class="val">grafana/grafana:latest</span>
     <span class="key">container_name:</span> <span class="val">grafana</span>
     <span class="key">restart:</span> <span class="val">always</span>
     <span class="key">ports:</span>
-      <span class="key">-</span> <span class="val">"3000:3000"</span>
+      <span class="key">-</span> "<span class="port">3000</span>:<span class="port">3000</span>"
     <span class="key">volumes:</span>
       <span class="comment"># Volume persistente: conserva dashboard e configurazioni tra i riavvii</span>
-      <span class="key">-</span> <span class="val">grafana_data:/var/lib/grafana</span>
+      <span class="key">-</span> <span class="val">grafana_data</span>:<span class="path">/var/lib/grafana</span>
     <span class="key">environment:</span>
       <span class="comment"># Password amministratore (da cambiare in produzione)</span>
       <span class="key">-</span> <span class="val">GF_SECURITY_ADMIN_PASSWORD=admin</span>
@@ -929,24 +921,24 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">image:</span> <span class="val">gcr.io/cadvisor/cadvisor:latest</span>
     <span class="key">container_name:</span> <span class="val">cadvisor</span>
     <span class="key">ports:</span>
-      <span class="key">-</span> <span class="val">"8080:8080"</span>
+      <span class="key">-</span> "<span class="port">8080</span>:<span class="port">8080</span>"
     <span class="key">volumes:</span>
       <span class="comment"># Accesso in sola lettura al filesystem host per le metriche dei container</span>
-      <span class="key">-</span> <span class="val">/:/rootfs:ro</span>
-      <span class="key">-</span> <span class="val">/var/run:/var/run:ro</span>
-      <span class="key">-</span> <span class="val">/sys:/sys:ro</span>
+      <span class="key">-</span> <span class="path">/</span>:<span class="path">/rootfs</span>:ro
+      <span class="key">-</span> <span class="path">/var/run</span>:<span class="path">/var/run</span>:ro
+      <span class="key">-</span> <span class="path">/sys</span>:<span class="path">/sys</span>:ro
       <span class="comment"># Mapping del runtime Docker (path con wildcard per compatibilità symlink su Debian)</span>
-      <span class="key">-</span> <span class="val">/var/lib/docker/:/var/lib*docker:ro</span>
-      <span class="key">-</span> <span class="val">/dev/disk/:/dev/disk:ro</span>
+      <span class="key">-</span> <span class="path">/var/lib/docker/</span>:<span class="path">/var/lib*docker</span>:ro
+      <span class="key">-</span> <span class="path">/dev/disk/</span>:<span class="path">/dev/disk</span>:ro
 
   <span class="key">loki:</span>
     <span class="key">image:</span> <span class="val">grafana/loki:2.9.1</span>
     <span class="key">container_name:</span> <span class="val">loki</span>
     <span class="key">ports:</span>
-      <span class="key">-</span> <span class="val">"3100:3100"</span>
+      <span class="key">-</span> "<span class="port">3100</span>:<span class="port">3100</span>"
     <span class="key">restart:</span> <span class="val">always</span>
     <span class="key">volumes:</span>
-      <span class="key">-</span> <span class="val">loki_data:/loki</span>
+      <span class="key">-</span> <span class="val">loki_data</span>:<span class="path">/loki</span>
 
   <span class="key">promtail:</span>
     <span class="key">image:</span> <span class="val">grafana/promtail:latest</span>
@@ -955,9 +947,9 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">user:</span> <span class="val">root</span>
     <span class="key">volumes:</span>
       <span class="comment"># Monta i log reali della macchina host dentro il container</span>
-      <span class="key">-</span> <span class="val">/var/log:/var/log</span>
-      <span class="key">-</span> <span class="val">/opt/lab-docker/promtail/config.yml:/etc/promtail/config.yml</span>
-    <span class="key">command:</span> <span class="val">-config.file=/etc/promtail/config.yml</span>
+      <span class="key">-</span> <span class="path">/var/log</span>:<span class="path">/var/log</span>
+      <span class="key">-</span> <span class="path">/opt/lab-docker/promtail/config.yml</span>:<span class="path">/etc/promtail/config.yml</span>
+    <span class="key">command:</span> <span class="flag">-config.file=</span><span class="path">/etc/promtail/config.yml</span>
 
 <span class="sec">volumes:</span>
   <span class="comment"># Volume named per la persistenza dei dati</span>
@@ -973,48 +965,39 @@ TrustAnchors          Primary    <span class="val">True</span>
 <section id="maintenance">
   <h2>Backup &amp; Cron</h2>
   <p>Gestione automatizzata dei backup per le share Samba tramite <code>rsync</code> e pianificazione periodica via <code>cron</code>. Il sistema implementa una politica di rotazione dei dati per mantenere uno storico di 7 giorni.</p>
-
   <h3>Script di Backup (/usr/local/bin/backup-samba.sh)</h3>
   <pre>
 <span class="comment">#!/bin/bash</span>
-
-<span class="key">set</span> -euo pipefail
+<span class="key">set</span> <span class="flag">-euo</span> pipefail
 
 <span class="comment"># Sorgente</span>
-<span class="key">SOURCE</span>=<span class="val">"/srv/samba/"</span>
-
+<span class="key">SOURCE</span>=<span class="path">"/srv/samba/"</span>
 <span class="comment"># Destinazione locale</span>
-<span class="key">BACKUP_ROOT</span>=<span class="val">"/backup/samba"</span>
-
+<span class="key">BACKUP_ROOT</span>=<span class="path">"/backup/samba"</span>
 <span class="comment"># Numero backup da mantenere</span>
 <span class="key">RETENTION</span>=<span class="val">7</span>
-
 <span class="comment"># Data backup</span>
-<span class="key">DATE</span>=$(<span class="key">date</span> +"%Y-%m-%d")
-
+<span class="key">DATE</span>=$(<span class="key">date</span> +<span class="val">"%Y-%m-%d"</span>)
 <span class="comment"># Cartella backup corrente</span>
 <span class="key">DEST</span>=<span class="val">"${BACKUP_ROOT}/backup_${DATE}"</span>
-
-<span class="key">LOGFILE</span>=<span class="val">"/var/log/backup-samba.log"</span>
-
+<span class="key">LOGFILE</span>=<span class="path">"/var/log/backup-samba.log"</span>
 
 <span class="comment"># Crea directory root se non esiste</span>
-<span class="key">mkdir</span> -p <span class="val">"${BACKUP_ROOT}"</span>
+<span class="key">mkdir</span> <span class="flag">-p</span> <span class="path">"${BACKUP_ROOT}"</span>
 
 <span class="key">log</span> () {
-    <span class="key">echo</span> <span class="val">"$(date '+%Y-%m-%d %H:%M:%S') - $1"</span> >> <span class="val">"${LOGFILE}"</span>
+    <span class="key">echo</span> <span class="val">"$(date '+%Y-%m-%d %H:%M:%S') - $1"</span> >> <span class="path">"${LOGFILE}"</span>
 }
-
 
 <span class="key">log</span> <span class="val">"___Avvio Backup__"</span>
 
 <span class="comment"># Backup rsync</span>
-<span class="comment">#-aAXv:      -a: modalità archivio , preserva permessi, ownership, timestap, symlink, dir ricorsive</span>
+<span class="comment">#-aAXv:      -a: modalità archivio, preserva permessi, ownership, timestamp, symlink, dir ricorsive</span>
 <span class="comment">#            -A: preserva ACL</span>
-<span class="comment">#            -X: preserva extended attributes </span>
+<span class="comment">#            -X: preserva extended attributes</span>
 <span class="comment">#            -v: verbose</span>
 <span class="comment">## --delete rimuove dalla destinazione i file che non esistono più nella sorgente.</span>
-<span class="key">if</span> <span class="key">rsync</span> -aAXv --delete <span class="val">"${SOURCE}"</span> <span class="val">"${DEST}"</span> >> <span class="val">"${LOGFILE}"</span> 2>&1; <span class="key">then</span>
+<span class="key">if</span> <span class="key">rsync</span> <span class="flag">-aAXv</span> <span class="flag">--delete</span> <span class="path">"${SOURCE}"</span> <span class="path">"${DEST}"</span> >> <span class="path">"${LOGFILE}"</span> 2>&1; <span class="key">then</span>
      <span class="key">log</span> <span class="val">"SUCCESSO: Backup completato in ${DEST}"</span>
 <span class="key">else</span>
      <span class="key">log</span> <span class="val">"ERRORE: Backup fallito"</span>
@@ -1022,15 +1005,15 @@ TrustAnchors          Primary    <span class="val">True</span>
 <span class="key">fi</span>
 
 <span class="comment"># Rotazione: elimina backup più vecchi</span>
-<span class="key">cd</span> <span class="val">"${BACKUP_ROOT}"</span> || <span class="key">exit</span> <span class="val">1</span>
+<span class="key">cd</span> <span class="path">"${BACKUP_ROOT}"</span> || <span class="key">exit</span> <span class="val">1</span>
 
 <span class="comment"># 1. ls -1dt */  -> Elenca le cartelle (-d) su una singola colonna (-1) ordinate dalla più recente alla più vecchia (-t)</span>
 <span class="comment"># 2. tail -n +8 -> Salta le prime 7 cartelle (i backup da tenere) e prende solo quelle dall'ottava in poi</span>
-<span class="key">OLD_BACKUPS</span>=$(<span class="key">ls</span> -1dt backup_* 2>/dev/null | <span class="key">tail</span> -n +$((RETENTION + 1)))
-  
+<span class="key">OLD_BACKUPS</span>=$(<span class="key">ls</span> <span class="flag">-1dt</span> backup_* 2>/dev/null | <span class="key">tail</span> <span class="flag">-n</span> +$((RETENTION + 1)))
+
 <span class="key">for</span> OLD <span class="key">in</span> ${OLD_BACKUPS}; <span class="key">do</span>
     <span class="key">log</span> <span class="val">"Elimino vecchio backup: ${OLD}"</span>
-    <span class="key">rm</span> -rf <span class="val">"${OLD}"</span>
+    <span class="key">rm</span> <span class="flag">-rf</span> <span class="path">"${OLD}"</span>
 <span class="key">done</span>
 
 <span class="key">log</span> <span class="val">"__Fine backup__"</span>
@@ -1039,7 +1022,7 @@ TrustAnchors          Primary    <span class="val">True</span>
   <h3>Pianificazione automatica (crontab)</h3>
   <pre>
 <span class="comment"># crontab -e</span>
-<span class="val">0 2 * * * /usr/local/bin/backup-samba.sh >> /var/log/backup-samba.log 2>&1</span>
+<span class="val">0 2 * * *</span> <span class="path">/usr/local/bin/backup-samba.sh</span> >> <span class="path">/var/log/backup-samba.log</span> 2>&1
 </pre>
 </section>
 </script>
