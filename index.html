@@ -894,16 +894,6 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">static_configs:</span>
       <span class="key">- targets:</span> [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
 
-  <span class="key">- job_name:</span> <span class="val">'servizi_debian'</span>
-    <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
-    <span class="comment"># Relabeling: sostituisce l'IP con il FQDN nei grafici Grafana</span>
-    <span class="comment"># Invece di '192.168.1.4:9100' compare 'debian.lab.local'</span>
-    <span class="key">relabel_configs:</span>
-      <span class="key">- source_labels:</span> [<span class="val">__address__</span>]
-        <span class="key">target_label:</span> <span class="val">instance</span>
-        <span class="key">replacement:</span> <span class="val">'debian.lab.local'</span>
-
   <span class="key">- job_name:</span> <span class="val">'cadvisor'</span>
     <span class="comment"># Metriche dei singoli container Docker tramite rete interna Compose</span>
     <span class="key">static_configs:</span>
