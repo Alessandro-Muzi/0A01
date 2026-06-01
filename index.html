@@ -101,6 +101,18 @@ nav {
   nav a:hover { color: var(--accent); border-left-color: var(--accent); background: rgba(88,166,255,.05); }
   nav a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
 
+  .nav-footer {
+  margin-top: auto;
+  padding: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  align-self: flex-end;
+  letter-spacing: .1em;
+}
+
 /* ── MOBILE ─────────────────────────────────── */
 .hamburger {
   display: none;
@@ -372,6 +384,8 @@ main {
 
   <div class="nav-section-label">Ops</div>
   <a href="#maintenance">Backup & Cron</a>
+  <span class="nav-footer">Alessandro Muzi</span>
+  
 </nav>
 
 <!-- ── MAIN ────────────────────────────────────── -->
