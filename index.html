@@ -878,7 +878,15 @@ TrustAnchors          Primary    <span class="val">True</span>
   <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
 }
 
-<span class="comment">// Spinge i log raccolti verso Loki tramite la rete interna Docker</span>
+<span class="comment">// Parsing automatico dei log in formato Docker JSON:
+// stage.docker estrae timestamp, stream (stdout/stderr) e messaggio
+// e corregge il fuso orario per la visualizzazione in Grafana</span>
+<span class="key">loki.process</span> <span class="val">"parse_docker_timestamp"</span> {
+  <span class="key">stage.docker</span> {}
+  <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
+}
+
+  <span class="comment">// Spinge i log raccolti verso Loki tramite la rete interna Docker</span>
 <span class="key">loki.write</span> <span class="val">"local_loki"</span> {
   <span class="key">endpoint</span> {
     <span class="key">url</span> = <span class="val">"http://loki:3100/loki/api/v1/push"</span>
