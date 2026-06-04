@@ -30,7 +30,7 @@ Rsync e Cron gestiscono ,in modo incrementale il backup automatizzato tramite sc
 
 [Samba Winbind CUPS](samba.conf)
 
-[Docker Prometheus Grafana Promtail Loki](DOCKERPROMGRAF)
+[Docker Prometheus Grafana Alloy Loki](DOCKERPROMGRAF)
 
 [Maintenance](maintenance)
 
