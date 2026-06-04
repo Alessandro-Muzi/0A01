@@ -855,10 +855,20 @@ TrustAnchors          Primary    <span class="val">True</span>
   <p>Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, Loki e <strong>Grafana Alloy</strong> gestiscono i log, Grafana li visualizza sulla porta 3000.</p>
 
   <h3>GRAFANA ALLOY (config.alloy)</h3>
-  <pre>
+<pre>
 <span class="comment">// Scopre automaticamente tutti i container Docker attivi tramite il socket</span>
 <span class="key">discovery.docker</span> <span class="val">"docker_containers"</span> {
   <span class="key">host</span> = <span class="val">"unix:///var/run/docker.sock"</span>
+}
+
+<span class="comment">// Pulisce i metadati Docker e assegna la label service_name</span>
+<span class="key">discovery.relabel</span> <span class="val">"docker_targets"</span> {
+  <span class="key">targets</span> = <span class="val">discovery.docker.docker_containers.targets</span>
+  <span class="key">rule</span> {
+    <span class="key">source_labels</span> = [<span class="val">"__meta_docker_container_name"</span>]
+    <span class="key">regex</span>          = <span class="val">"/(.+)"</span>
+    <span class="key">target_label</span>   = <span class="val">"service_name"</span>
+  }
 }
 
 <span class="comment">// Raccoglie i log dallo stdout/stderr di tutti i container scoperti</span>
