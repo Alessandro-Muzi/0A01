@@ -12,6 +12,16 @@ discovery.docker "docker_containers" {
   host = "unix:///var/run/docker.sock"
 }
 
+// Pulisce i metadati Docker e assegna la label service_name
+discovery.relabel "docker_targets" {
+  targets = discovery.docker.docker_containers.targets
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex          = "/(.+)"
+    target_label   = "service_name"
+  }
+}
+
 // Raccoglie i log dallo stdout/stderr di tutti i container scoperti
 loki.source.docker "docker_logs" {
   host       = "unix:///var/run/docker.sock"
