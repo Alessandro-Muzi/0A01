@@ -27,6 +27,12 @@ loki.source.docker "docker_logs" {
   host       = "unix:///var/run/docker.sock"
   targets    = discovery.docker.docker_containers.targets
   forward_to = [loki.write.local_loki.receiver]
+}// Parsing automatico dei log in formato Docker JSON:
+// stage.docker estrae timestamp, stream (stdout/stderr) e messaggio
+// e corregge il fuso orario per la visualizzazione in Grafana
+loki.process "parse_docker_timestamp" {
+  stage.docker {}
+  forward_to = [loki.write.local_loki.receiver]
 }
 
 // Spinge i log raccolti verso Loki tramite la rete interna Docker
