@@ -408,7 +408,7 @@ main {
 
   <p>La prima LAN (10.0.10.1) è destinata a due client Linux (Fedora 10.0.10.101 e Ubuntu 10.0.10.102), mentre la seconda (10.0.20.1) collega il server Debian alla macchina Windows Server (Controller di Dominio), che gestisce Active Directory e il servizio DNS per l'intera struttura. Tutto il traffico della rete privata transita crittografato all'interno del tunnel <strong>WireGuard</strong> (VPN).</p>
 
-  <p>Samba, installato su Debian, si interfaccia con AD tramite <code>winbind</code> e gestisce un Print Server condiviso via CUPS. Lo stack di monitoring composto da <strong>Grafana, Prometheus, Loki, Alloy e cAdvisor</strong>, containerizzato in Docker, si occupa del monitoraggio e del logging dello stato delle macchine e della rete. Infine, <strong>Rsync e Cron</strong> gestiscono in modo incrementale il backup automatizzato dell'intero ambiente tramite script dedicati.</p>
+  <p>Samba, installato su Debian, si interfaccia con AD tramite <code>winbind</code> e gestisce un Print Server condiviso via CUPS. Lo stack di monitoring composto da <strong>Grafana Alloy, Prometheus, Loki e cAdvisor</strong>, containerizzato in Docker, si occupa del monitoraggio e del logging dello stato delle macchine e della rete. Infine, <strong>Rsync e Cron</strong> gestiscono in modo incrementale il backup automatizzato dell'intero ambiente tramite script dedicati.</p>
 </section>
 
    <section id="topologia">
