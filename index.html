@@ -852,123 +852,182 @@ TrustAnchors          Primary    <span class="val">True</span>
   <!-- DOCKER -->
 <section id="docker">
   <h2>Docker &amp; Monitoring</h2>
-  <p>Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, Loki e Promtail gestiscono i log, Grafana li visualizza sulla porta 3000.</p>
+  <p>Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, Loki e <strong>Grafana Alloy</strong> gestiscono i log, Grafana li visualizza sulla porta 3000.</p>
 
-  <h3>PROMTAIL (config.yml)</h3>
+  <h3>GRAFANA ALLOY (config.alloy)</h3>
   <pre>
-<span class="sec">server:</span>
-  <span class="comment"># Porta HTTP su cui Promtail espone le sue metriche e l'API</span>
-  <span class="key">http_listen_port:</span> <span class="port">9080</span>
-  <span class="comment"># gRPC disabilitato (0 = non in ascolto)</span>
-  <span class="key">grpc_listen_port:</span> <span class="port">0</span>
+<span class="comment">// Scopre automaticamente tutti i container Docker attivi tramite il socket</span>
+<span class="key">discovery.docker</span> <span class="val">"docker_containers"</span> {
+  <span class="key">host</span> = <span class="val">"unix:///var/run/docker.sock"</span>
+}
 
-<span class="sec">positions:</span>
-  <span class="comment"># Segnalibro: salva l'ultima riga letta per evitare duplicati al riavvio</span>
-  <span class="key">filename:</span> <span class="path">/tmp/positions.yaml</span>
+<span class="comment">// Raccoglie i log dallo stdout/stderr di tutti i container scoperti</span>
+<span class="key">loki.source.docker</span> <span class="val">"docker_logs"</span> {
+  <span class="key">host</span>       = <span class="val">"unix:///var/run/docker.sock"</span>
+  <span class="key">targets</span>    = <span class="val">discovery.docker.docker_containers.targets</span>
+  <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
+}
 
-<span class="sec">clients:</span>
-  <span class="comment"># Destinazione: spinge i log verso Loki tramite la rete interna Docker</span>
-  <span class="key">- url:</span> http://loki:<span class="port">3100</span>/loki/api/v1/push
+<span class="comment">// Spinge i log raccolti verso Loki tramite la rete interna Docker</span>
+<span class="key">loki.write</span> <span class="val">"local_loki"</span> {
+  <span class="key">endpoint</span> {
+    <span class="key">url</span> = <span class="val">"http://loki:3100/loki/api/v1/push"</span>
+  }
+}</pre>
 
-<span class="sec">scrape_configs:</span>
-  <span class="key">- job_name:</span> <span class="val">system</span>
-    <span class="key">static_configs:</span>
-      <span class="key">- targets:</span>
-        <span class="key">-</span> <span class="val">localhost</span>
-      <span class="key">labels:</span>
-        <span class="comment"># Label per identificare questo job in Grafana (query: {job="varlogs"})</span>
-        <span class="key">job:</span> <span class="val">varlogs</span>
-        <span class="comment"># Raccoglie tutti i file .log dentro /var/log/ della macchina host</span>
-        <span class="key">__path__:</span> <span class="path">/var/log/*.log</span>
-</pre>
-
-  <h3>PROMETHEUS (prometheus.yml)</h3>
+  <h3>LOKI (loki-config.yaml)</h3>
   <pre>
-<span class="sec">global:</span>
-  <span class="comment"># Intervallo di raccolta metriche: ogni 15 secondi va a "bussare" a tutti i target</span>
-  <span class="key">scrape_interval:</span> <span class="val">15s</span>
+<span class="comment"># Disabilita autenticazione multi-tenant</span>
+<span class="key">auth_enabled</span>: <span class="val">false</span>
 
-<span class="sec">scrape_configs:</span>
-  <span class="key">- job_name:</span> <span class="val">'node_exporter'</span>
-    <span class="comment"># Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)</span>
-    <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
+<span class="key">server</span>:
+  <span class="comment"># Porta HTTP di ascolto</span>
+  <span class="key">http_listen_port</span>: <span class="val">3100</span>
 
-  <span class="key">- job_name:</span> <span class="val">'cadvisor'</span>
-    <span class="comment"># Metriche dei singoli container Docker tramite rete interna Compose</span>
-    <span class="key">static_configs:</span>
-      <span class="key">- targets:</span> [cadvisor:<span class="port">8080</span>]
-</pre>
+<span class="key">ingester</span>:
+  <span class="key">wal</span>:
+    <span class="comment"># Directory Write-Ahead Log per durabilità dei dati</span>
+    <span class="key">dir</span>: <span class="val">/loki/wal</span>
+  <span class="key">lifecycler</span>:
+    <span class="key">address</span>: <span class="val">127.0.0.1</span>
+    <span class="key">ring</span>:
+      <span class="key">kvstore</span>:
+        <span class="comment"># Store in memoria — adatto per istanza singola</span>
+        <span class="key">store</span>: <span class="val">inmemory</span>
+      <span class="key">replication_factor</span>: <span class="val">1</span>
+
+<span class="key">schema_config</span>:
+  <span class="key">configs</span>:
+    - <span class="key">from</span>: <span class="val">2020-10-24</span>
+      <span class="comment"># Backend TSDB — più efficiente di BoltDB per volumi elevati</span>
+      <span class="key">store</span>: <span class="val">tsdb</span>
+      <span class="key">object_store</span>: <span class="val">filesystem</span>
+      <span class="comment"># Schema v13 — versione più recente e stabile</span>
+      <span class="key">schema</span>: <span class="val">v13</span>
+      <span class="key">index</span>:
+        <span class="key">prefix</span>: <span class="val">index_</span>
+        <span class="comment"># Rotazione indice ogni 24 ore</span>
+        <span class="key">period</span>: <span class="val">24h</span>
+
+<span class="key">storage_config</span>:
+  <span class="key">tsdb_shipper</span>:
+    <span class="key">active_index_directory</span>: <span class="val">/loki/index</span>
+    <span class="key">cache_location</span>: <span class="val">/loki/index_cache</span>
+  <span class="key">filesystem</span>:
+    <span class="comment"># Directory locale per i chunk dei log</span>
+    <span class="key">directory</span>: <span class="val">/loki/chunks</span>
+
+<span class="key">limits_config</span>:
+  <span class="comment"># Disabilita metadata strutturati non necessari in questa configurazione</span>
+  <span class="key">allow_structured_metadata</span>: <span class="val">false</span>
+  <span class="comment"># Accetta log con timestamp nel passato</span>
+  <span class="key">reject_old_samples</span>: <span class="val">false</span>
+  <span class="comment"># Finestra massima di accettazione: 7 giorni</span>
+  <span class="key">reject_old_samples_max_age</span>: <span class="val">168h</span>
+  <span class="key">ingestion_rate_mb</span>: <span class="val">4</span>
+  <span class="key">ingestion_burst_size_mb</span>: <span class="val">6</span></pre>
 
   <h3>DOCKER (docker-compose.yml)</h3>
   <pre>
-<span class="sec">services:</span>
-  <span class="key">prometheus:</span>
-    <span class="key">image:</span> <span class="val">prom/prometheus</span>
-    <span class="key">container_name:</span> <span class="val">prometheus</span>
-    <span class="key">restart:</span> <span class="val">always</span>
-    <span class="key">volumes:</span>
+<span class="key">services</span>:
+  <span class="key">prometheus</span>:
+    <span class="key">image</span>: <span class="val">prom/prometheus</span>
+    <span class="key">container_name</span>: <span class="val">prometheus</span>
+    <span class="key">restart</span>: <span class="val">always</span>
+    <span class="key">volumes</span>:
       <span class="comment"># Monta la configurazione personalizzata dei target e dello scrape interval</span>
-      <span class="key">-</span> <span class="path">/opt/lab-docker/prometheus.yml</span>:<span class="path">/etc/prometheus/prometheus.yml</span>
-    <span class="key">ports:</span>
-      <span class="key">-</span> "<span class="port">9090</span>:<span class="port">9090</span>"
+      - <span class="val">/opt/lab-docker/prometheus.yml:/etc/prometheus/prometheus.yml</span>
+    <span class="key">ports</span>:
+      - <span class="val">"9090:9090"</span>
+    <span class="key">networks</span>:
+      - <span class="val">monitoring</span>
 
-  <span class="key">grafana:</span>
-    <span class="key">image:</span> <span class="val">grafana/grafana:latest</span>
-    <span class="key">container_name:</span> <span class="val">grafana</span>
-    <span class="key">restart:</span> <span class="val">always</span>
-    <span class="key">ports:</span>
-      <span class="key">-</span> "<span class="port">3000</span>:<span class="port">3000</span>"
-    <span class="key">volumes:</span>
+  <span class="key">grafana</span>:
+    <span class="key">image</span>: <span class="val">grafana/grafana:latest</span>
+    <span class="key">container_name</span>: <span class="val">grafana</span>
+    <span class="key">restart</span>: <span class="val">always</span>
+    <span class="key">ports</span>:
+      - <span class="val">"3000:3000"</span>
+    <span class="key">volumes</span>:
       <span class="comment"># Volume persistente: conserva dashboard e configurazioni tra i riavvii</span>
-      <span class="key">-</span> <span class="val">grafana_data</span>:<span class="path">/var/lib/grafana</span>
-    <span class="key">environment:</span>
+      - <span class="val">grafana_data:/var/lib/grafana</span>
+    <span class="key">environment</span>:
       <span class="comment"># Password amministratore (da cambiare in produzione)</span>
-      <span class="key">-</span> <span class="val">GF_SECURITY_ADMIN_PASSWORD=admin</span>
+      - <span class="val">GF_SECURITY_ADMIN_PASSWORD=admin</span>
+    <span class="key">networks</span>:
+      - <span class="val">monitoring</span>
 
-  <span class="key">cadvisor:</span>
-    <span class="key">image:</span> <span class="val">gcr.io/cadvisor/cadvisor:latest</span>
-    <span class="key">container_name:</span> <span class="val">cadvisor</span>
-    <span class="key">ports:</span>
-      <span class="key">-</span> "<span class="port">8080</span>:<span class="port">8080</span>"
-    <span class="key">volumes:</span>
+  <span class="key">cadvisor</span>:
+    <span class="key">image</span>: <span class="val">gcr.io/cadvisor/cadvisor:latest</span>
+    <span class="key">container_name</span>: <span class="val">cadvisor</span>
+    <span class="key">ports</span>:
+      - <span class="val">"8080:8080"</span>
+    <span class="key">volumes</span>:
       <span class="comment"># Accesso in sola lettura al filesystem host per le metriche dei container</span>
-      <span class="key">-</span> <span class="path">/</span>:<span class="path">/rootfs</span>:ro
-      <span class="key">-</span> <span class="path">/var/run</span>:<span class="path">/var/run</span>:ro
-      <span class="key">-</span> <span class="path">/sys</span>:<span class="path">/sys</span>:ro
-      <span class="comment"># Mapping del runtime Docker (path con wildcard per compatibilità symlink su Debian)</span>
-      <span class="key">-</span> <span class="path">/var/lib/docker/</span>:<span class="path">/var/lib*docker</span>:ro
-      <span class="key">-</span> <span class="path">/dev/disk/</span>:<span class="path">/dev/disk</span>:ro
+      - <span class="val">/:/rootfs:ro</span>
+      - <span class="val">/var/run:/var/run:ro</span>
+      - <span class="val">/sys:/sys:ro</span>
+      - <span class="val">/var/lib/docker/:/var/lib/docker:ro</span>
+      - <span class="val">/dev/disk/:/dev/disk:ro</span>
+    <span class="key">networks</span>:
+      - <span class="val">monitoring</span>
 
-  <span class="key">loki:</span>
-    <span class="key">image:</span> <span class="val">grafana/loki:2.9.1</span>
-    <span class="key">container_name:</span> <span class="val">loki</span>
-    <span class="key">ports:</span>
-      <span class="key">-</span> "<span class="port">3100</span>:<span class="port">3100</span>"
-    <span class="key">restart:</span> <span class="val">always</span>
-    <span class="key">volumes:</span>
-      <span class="key">-</span> <span class="val">loki_data</span>:<span class="path">/loki</span>
+  <span class="key">loki</span>:
+    <span class="key">image</span>: <span class="val">grafana/loki:latest</span>
+    <span class="comment"># Root necessario per scrivere nella directory WAL</span>
+    <span class="key">user</span>: <span class="val">"0:0"</span>
+    <span class="key">container_name</span>: <span class="val">loki</span>
+    <span class="key">ports</span>:
+      - <span class="val">"3100:3100"</span>
+    <span class="key">restart</span>: <span class="val">always</span>
+    <span class="key">environment</span>:
+      - <span class="val">TZ=Europe/Rome</span>
+    <span class="key">volumes</span>:
+      <span class="comment"># Sincronizza il fuso orario con il sistema host</span>
+      - <span class="val">/etc/localtime:/etc/localtime:ro</span>
+      - <span class="val">loki_data:/loki</span>
+      <span class="comment"># File di configurazione personalizzato</span>
+      - <span class="val">/opt/lab-docker/loki-config.yaml:/etc/loki/local-config.yaml</span>
+    <span class="key">command</span>: <span class="val">-config.file=/etc/loki/local-config.yaml</span>
+    <span class="key">networks</span>:
+      - <span class="val">monitoring</span>
 
-  <span class="key">promtail:</span>
-    <span class="key">image:</span> <span class="val">grafana/promtail:latest</span>
-    <span class="key">container_name:</span> <span class="val">promtail</span>
-    <span class="comment"># Necessario per leggere i log di sistema protetti in /var/log</span>
-    <span class="key">user:</span> <span class="val">root</span>
-    <span class="key">volumes:</span>
-      <span class="comment"># Monta i log reali della macchina host dentro il container</span>
-      <span class="key">-</span> <span class="path">/var/log</span>:<span class="path">/var/log</span>
-      <span class="key">-</span> <span class="path">/opt/lab-docker/promtail/config.yml</span>:<span class="path">/etc/promtail/config.yml</span>
-    <span class="key">command:</span> <span class="flag">-config.file=</span><span class="path">/etc/promtail/config.yml</span>
+  <span class="key">alloy</span>:
+    <span class="key">image</span>: <span class="val">grafana/alloy:latest</span>
+    <span class="key">container_name</span>: <span class="val">alloy</span>
+    <span class="key">restart</span>: <span class="val">always</span>
+    <span class="key">ports</span>:
+      - <span class="val">"12345:12345"</span>
+    <span class="comment"># Root necessario per accedere al socket Docker</span>
+    <span class="key">user</span>: <span class="val">"0:0"</span>
+    <span class="key">environment</span>:
+      - <span class="val">TZ=Europe/Rome</span>
+    <span class="key">volumes</span>:
+      <span class="comment"># Socket Docker per la scoperta automatica dei container</span>
+      - <span class="val">/var/run/docker.sock:/var/run/docker.sock:ro</span>
+      <span class="comment"># Log dei container Docker accessibili da Alloy</span>
+      - <span class="val">/var/lib/docker/containers:/var/log/docker/containers:ro</span>
+      <span class="comment"># File di configurazione Alloy in formato River/HCL</span>
+      - <span class="val">/opt/lab-docker/alloy/config.alloy:/etc/alloy/config.alloy:ro</span>
+      - <span class="val">/etc/localtime:/etc/localtime:ro</span>
+    <span class="key">command</span>: <span class="val">run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy /etc/alloy/config.alloy</span>
+    <span class="comment"># Alloy parte solo dopo che Loki è disponibile</span>
+    <span class="key">depends_on</span>:
+      - <span class="val">loki</span>
+    <span class="key">networks</span>:
+      - <span class="val">monitoring</span>
 
-<span class="sec">volumes:</span>
-  <span class="comment"># Volume named per la persistenza dei dati</span>
-  <span class="key">grafana_data:</span>
-  <span class="key">loki_data:</span>
-</pre>
+<span class="key">volumes</span>:
+  <span class="comment"># Volumi named per la persistenza dei dati tra i riavvii</span>
+  <span class="val">grafana_data</span>:
+  <span class="val">loki_data</span>:
 
-  <div class="callout green">
-    Usare l'Explore di Grafana con la query <code>{job=~".*"}</code> per vedere quali label stanno effettivamente arrivando a Loki prima di impazzire sul JSON.
-  </div>
+<span class="key">networks</span>:
+  <span class="comment"># Rete bridge dedicata — garantisce risoluzione DNS interna tra i container</span>
+  <span class="key">monitoring</span>:
+    <span class="key">driver</span>: <span class="val">bridge</span></pre>
+
+  <div class="callout green">Usare l'Explore di Grafana con la query <code>{service_name=~".+"}</code> per visualizzare i log raccolti da Alloy. La migrazione da Promtail ad Alloy è stata necessaria a seguito della sua dismissione ufficiale (EOL) il 2 marzo 2026.</div>
 </section>
 
 <section id="maintenance">
