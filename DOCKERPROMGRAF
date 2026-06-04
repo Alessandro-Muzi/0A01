@@ -1,36 +1,30 @@
 ##Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, 
-##Loki e Promtail gestiscono i log, Grafana li visualizza sulla porta 3000.
+##Loki e Alloy gestiscono i log, Grafana li visualizza sulla porta 3000.
 
 
-PROMTAIL (config.yml)
+
+GRAFANA ALLOY (config.alloy)
 -----------------------------------------------------------------------------------------------------
 
 
-server:
-  # Porta HTTP su cui Promtail espone le sue metriche e l'API
-  http_listen_port: 9080
-  # gRPC disabilitato (0 = non in ascolto)
-  grpc_listen_port: 0
+// Scopre automaticamente tutti i container Docker attivi tramite il socket
+discovery.docker "docker_containers" {
+  host = "unix:///var/run/docker.sock"
+}
 
-positions:
-  # Segnalibro: salva l'ultima riga letta per evitare duplicati al riavvio
-  filename: /tmp/positions.yaml
+// Raccoglie i log dallo stdout/stderr di tutti i container scoperti
+loki.source.docker "docker_logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.docker.docker_containers.targets
+  forward_to = [loki.write.local_loki.receiver]
+}
 
-clients:
-  # Destinazione: spinge i log verso Loki tramite la rete interna Docker
-  - url: http://loki:3100/loki/api/v1/push
-
-scrape_configs:
-  - job_name: system
-    static_configs:
-      - targets:
-        - localhost
-      labels:
-        # Label per identificare questo job in Grafana (query: {job="varlogs"})
-        job: varlogs
-        # Raccoglie tutti i file .log dentro /var/log/ della macchina host
-        __path__: /var/log/*.log
-
+// Spinge i log raccolti verso Loki tramite la rete interna Docker
+loki.write "local_loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
 
 
 
@@ -46,13 +40,68 @@ scrape_configs:
   - job_name: 'node_exporter'
     # Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)
     static_configs:
-      - targets: ['192.168.1.4:9100']
+      - targets: [192.168.1.4:9100]
 
   - job_name: 'cadvisor'
     # Metriche dei singoli container Docker tramite rete interna Compose
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: [cadvisor:8080]
 
+
+
+
+LOKI (loki-config.yaml)
+--------------------------------------------------------------------------------------------------
+
+# Disabilita autenticazione multi-tenant
+auth_enabled: false
+
+server:
+  # Porta HTTP di ascolto
+  http_listen_port: 3100
+
+ingester:
+  wal:
+    # Directory Write-Ahead Log per durabilità dei dati
+    dir: /loki/wal
+  lifecycler:
+    address: 127.0.0.1
+    ring:
+      kvstore:
+        # Store in memoria — adatto per istanza singola
+        store: inmemory
+      replication_factor: 1
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      # Backend TSDB — più efficiente di BoltDB per volumi elevati
+      store: tsdb
+      object_store: filesystem
+      # Schema v13 — versione più recente e stabile
+      schema: v13
+      index:
+        prefix: index_
+        # Rotazione indice ogni 24 ore
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/index_cache
+  filesystem:
+    # Directory locale per i chunk dei log
+    directory: /loki/chunks
+
+limits_config:
+  # Disabilita metadata strutturati non necessari in questa configurazione
+  allow_structured_metadata: false
+  # Accetta log con timestamp nel passato
+  reject_old_samples: false
+  # Finestra massima di accettazione: 7 giorni
+  reject_old_samples_max_age: 168h
+  ingestion_rate_mb: 4
+  ingestion_burst_size_mb: 6
 
 
 
@@ -68,6 +117,8 @@ services:
       - /opt/lab-docker/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
@@ -81,6 +132,8 @@ services:
     environment:
       # Password amministratore (da cambiare in produzione)
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -92,35 +145,65 @@ services:
       - /:/rootfs:ro
       - /var/run:/var/run:ro
       - /sys:/sys:ro
-      # Mapping del runtime Docker (path con wildcard per compatibilità symlink su Debian)
-      - /var/lib/docker/:/var/lib*docker:ro
+      - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
 
   loki:
-    image: grafana/loki:2.9.1
+    image: grafana/loki:latest
+    # Root necessario per scrivere nella directory WAL
+    user: "0:0"
     container_name: loki
     ports:
       - "3100:3100"
     restart: always
+    environment:
+      - TZ=Europe/Rome
     volumes:
+      # Sincronizza il fuso orario con il sistema host
+      - /etc/localtime:/etc/localtime:ro
       - loki_data:/loki
- 
+      # File di configurazione personalizzato
+      - /opt/lab-docker/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring
 
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    # Necessario per leggere i log di sistema protetti in /var/log
-    user: root
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    restart: always
+    ports:
+      - "12345:12345"
+    # Root necessario per accedere al socket Docker
+    user: "0:0"
+    environment:
+      - TZ=Europe/Rome
     volumes:
-      # Monta i log reali della macchina host dentro il container
-      - /var/log:/var/log
-      - /opt/lab-docker/promtail/config.yml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yml
+      # Socket Docker per la scoperta automatica dei container
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Log dei container Docker accessibili da Alloy
+      - /var/lib/docker/containers:/var/log/docker/containers:ro
+      # File di configurazione Alloy in formato River/HCL
+      - /opt/lab-docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /etc/localtime:/etc/localtime:ro
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy /etc/alloy/config.alloy
+    # Alloy parte solo dopo che Loki è disponibile
+    depends_on:
+      - loki
+    networks:
+      - monitoring
 
 volumes:
-  # Volume named per la persistenza dei dati Grafana
+  # Volumi named per la persistenza dei dati tra i riavvii
   grafana_data:
   loki_data:
 
+networks:
+  # Rete bridge dedicata — garantisce risoluzione DNS interna tra i container
+  monitoring:
+    driver: bridge
 
-##Usare l'Explore di Grafana con la query {job=~".*"} per vedere quali label stanno effettivamente arrivando a Loki prima di impazzire sul JSON.
+
+Usare l'Explore di Grafana con la query {service_name=~".+"} per visualizzare i log raccolti da Alloy. La migrazione da Promtail ad Alloy è stata necessaria a seguito della sua dismissione ufficiale (EOL) il 2 marzo 2026.
