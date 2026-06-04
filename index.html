@@ -874,6 +874,23 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">url</span> = <span class="val">"http://loki:3100/loki/api/v1/push"</span>
   }
 }</pre>
+  <h3>PROMETHEUS (prometheus.yml)</h3>
+<pre>
+<span class="key">global</span>:
+  <span class="comment"># Intervallo di raccolta metriche: ogni 15 secondi va a "bussare" a tutti i target</span>
+  <span class="key">scrape_interval</span>: <span class="val">15s</span>
+
+<span class="key">scrape_configs</span>:
+  - <span class="key">job_name</span>: <span class="val">'node_exporter'</span>
+    <span class="comment"># Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)</span>
+    <span class="key">static_configs</span>:
+      - <span class="key">targets</span>: [<span class="ip">192.168.1.4</span>:<span class="port">9100</span>]
+
+  - <span class="key">job_name</span>: <span class="val">'cadvisor'</span>
+    <span class="comment"># Metriche dei singoli container Docker tramite rete interna Compose</span>
+    <span class="key">static_configs</span>:
+      - <span class="key">targets</span>: [<span class="val">cadvisor</span>:<span class="port">8080</span>]
+</pre>
 
   <h3>LOKI (loki-config.yaml)</h3>
   <pre>
