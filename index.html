@@ -986,9 +986,12 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">volumes</span>:
       <span class="comment"># Volume persistente: conserva dashboard e configurazioni tra i riavvii</span>
       - <span class="val">grafana_data:/var/lib/grafana</span>
+      - <span class="val">/etc/localtime:/etc/localtime:ro</span>
     <span class="key">environment</span>:
       <span class="comment"># Password amministratore (da cambiare in produzione)</span>
       - <span class="val">GF_SECURITY_ADMIN_PASSWORD=admin</span>
+      <span class="comment"># Fuso orario: allinea Grafana all'ora locale per la corretta visualizzazione dei log</span>
+      - <span class="val">TZ=Europe/Rome</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
