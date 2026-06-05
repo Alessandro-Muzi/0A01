@@ -144,29 +144,32 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    volumes:
-      # Volume persistente: conserva dashboard e configurazioni tra i riavvii
-      - grafana_data:/var/lib/grafana
-    environment:
-      # Password amministratore (da cambiare in produzione)
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    networks:
-      - monitoring
+  volumes:
+    # Volume persistente: conserva dashboard e configurazioni tra i riavvii
+    - grafana_data:/var/lib/grafana
+    - /etc/localtime:/etc/localtime:ro
+  environment:
+    # Password amministratore (da cambiare in produzione)
+    - GF_SECURITY_ADMIN_PASSWORD=admin
+    # Fuso orario: allinea Grafana all'ora locale per la corretta visualizzazione dei log
+    - TZ=Europe/Rome
+  networks:
+    - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     ports:
       - "8080:8080"
-    volumes:
-      # Accesso in sola lettura al filesystem host per le metriche dei container
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    networks:
-      - monitoring
+  volumes:
+    # Accesso in sola lettura al filesystem host per le metriche dei container
+    - /:/rootfs:ro
+    - /var/run:/var/run:ro
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    - /dev/disk/:/dev/disk:ro
+  networks:
+    - monitoring
 
   loki:
     image: grafana/loki:latest
@@ -213,14 +216,14 @@ services:
     networks:
       - monitoring
 
-volumes:
-  # Volumi named per la persistenza dei dati tra i riavvii
-  grafana_data:
-  loki_data:
+ volumes:
+   # Volumi named per la persistenza dei dati tra i riavvii
+   grafana_data:
+   loki_data:
 
-networks:
-  # Rete bridge dedicata — garantisce risoluzione DNS interna tra i container
-  monitoring:
+ networks:
+   # Rete bridge dedicata — garantisce risoluzione DNS interna tra i container
+   monitoring:
     driver: bridge
 
 
