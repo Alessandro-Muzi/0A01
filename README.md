@@ -1,6 +1,6 @@
 
 ### PREMESSA
-Mi presento: sono Alessandro, ho recentemente completato un corso di 300 ore presso il CEFI, focalizzato sulla gestione dei sistemi e sulla sicurezza informatica.
+sono Alessandro Muzi, ho recentemente completato un corso di 300 ore presso il CEFI, focalizzato sulla gestione dei sistemi e sulla sicurezza informatica.
 
 Questo repository nasce con l'obiettivo di documentare la creazione di un ambiente aziendale simulato in cui il Domain Controller Windows gestisce Active Directory e DNS, mentre i sistemi Debian ospitano tutti i servizi infrastrutturali complementari
 
