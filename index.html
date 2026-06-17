@@ -421,7 +421,7 @@ main {
   
   <p>Questo repository nasce con l'obiettivo di documentare la creazione di un <strong>ambiente aziendale simulato</strong> in cui il Domain Controller Windows gestisce Active Directory e DNS, mentre i sistemi Debian ospitano tutti i servizi infrastrutturali complementari.</p>
 
-  <p>La struttura è la seguente: il server <strong>Debian 13 "Trixie"</strong> (Oracle VM) funge da core dell'infrastruttura, configurato con funzioni di routing e NAT tramite <code>iptables</code> e IP forwarding, oltre alla gestione del servizio <strong>DHCP Kea</strong>. Il server ospita 3 interfacce di rete: una in modalità <em>bridge</em> (enp0s3) e due LAN dedicate (LAN1=enp0s8, LAN2=enp0s9).</p>
+  <p>La struttura è la seguente: il server <strong>Debian 13 "Trixie"</strong> (Oracle VM) funge da core dell'infrastruttura, configurato con funzioni di routing e NAT tramite <code>nftables</code> e IP forwarding, oltre alla gestione del servizio <strong>DHCP Kea</strong>. Il server ospita 3 interfacce di rete: una in modalità <em>bridge</em> (enp0s3) e due LAN dedicate (LAN1=enp0s8, LAN2=enp0s9).</p>
 
   <p>La prima LAN (10.0.10.1) è destinata a due client Linux (Fedora 10.0.10.101 e Ubuntu 10.0.10.102), mentre la seconda (10.0.20.1) collega il server Debian alla macchina Windows Server (Controller di Dominio), che gestisce Active Directory e il servizio DNS per l'intera struttura. Tutto il traffico della rete privata transita crittografato all'interno del tunnel <strong>WireGuard</strong> (VPN).</p>
 
@@ -590,7 +590,7 @@ iface <span class="iface">enp0s9</span> inet static
   </section>
 
 <section id="firewall">
-    <h2>Firewall — NFTables &amp; Iptables <span class="badge">legacy</span></h2>
+    <h2>Firewall — nftables &amp; iptables <span class="badge">legacy</span></h2>
     <p>La sicurezza perimetrale e il routing interno sono gestiti tramite nftables. Il firewall implementa una politica di tipo Whitelisting (DROP di default), isola e unisce selettivamente i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet. La configurazione è stata migrata da iptables, mantenuta di seguito come riferimento storico.</p>
 <pre>
 <span class="comment">#!/usr/sbin/nft -f</span>
