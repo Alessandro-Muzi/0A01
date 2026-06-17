@@ -670,11 +670,11 @@ iface <span class="iface">enp0s9</span> inet static
 <span class="comment">// Disabilita il salvataggio automatico delle modifiche apportate a runtime via CLI</span>
 <span class="key">SaveConfig</span> = <span class="val">False</span>
 <span class="comment">// Regole iptables applicate all'avvio: abilitano l'inoltro e il NAT</span>
-<span class="key">PostUp</span>     = <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+<span class="comment">PostUp</span>     = <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
              <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
              <span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-A</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span>
 <span class="comment">// Rimuove le regole iptables dedicate alla VPN al momento dello spegnimento</span>
-<span class="key">PostDown</span>   = <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+<span class="comment">PostDown</span>   = <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
              <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
              <span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-D</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span>
 <span class="comment">// Porta UDP di ascolto principale su cui il server attende le connessioni in ingresso</span>
