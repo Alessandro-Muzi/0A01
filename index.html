@@ -665,39 +665,39 @@ iface <span class="iface">enp0s9</span> inet static
     <h3>wg0.conf — Configurazione del Server (Gateway Debian)</h3>
     <pre>
 <span class="sec">[Interface]</span>
-<span class="comment">// Indirizzo IP e subnet dedicati alla rete privata virtuale (VPN)</span>
+<span class="comment"># Indirizzo IP e subnet dedicati alla rete privata virtuale (VPN)</span>
 <span class="key">Address</span>    = <span class="ip">10.8.0.1/24</span>
-<span class="comment">// Disabilita il salvataggio automatico delle modifiche apportate a runtime via CLI</span>
+<span class="comment"># Disabilita il salvataggio automatico delle modifiche apportate a runtime via CLI</span>
 <span class="key">SaveConfig</span> = <span class="val">False</span>
-<span class="comment">// Regole iptables applicate all'avvio: abilitano l'inoltro e il NAT</span>
+<span class="comment"># Regole iptables applicate all'avvio: abilitano l'inoltro e il NAT</span>
 <span style="opacity: 0.35;"><span class="comment">//PostUp</span>     = <span class="key">iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
-<span class="key">#                   iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
-<span class="key">#                   iptables</span> <span class="flag">-t</span> nat <span class="flag">-A</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span></span>
+<span class="key">#                    iptables</span> <span class="flag">-A</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+<span class="key">#                    iptables</span> <span class="flag">-t</span> nat <span class="flag">-A</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span></span>
 <span class="comment">// Rimuove le regole iptables dedicate alla VPN al momento dello spegnimento</span>
 <span style="opacity: 0.35;"><span class="comment">//PostDown</span>   = <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-i</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
-             <span class="key">iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
-             <span class="key">iptables</span> <span class="flag">-t</span> nat <span class="flag">-D</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span></span>
-<span class="comment">// Porta UDP di ascolto principale su cui il server attende le connessioni in ingresso</span>
+<span class="key">#                    iptables</span> <span class="flag">-D</span> <span class="chain">FORWARD</span> <span class="flag">-o</span> <span class="iface">wg0</span> <span class="flag">-j</span> <span class="target">ACCEPT</span>;
+<span class="key">#                    iptables</span> <span class="flag">-t</span> nat <span class="flag">-D</span> <span class="chain">POSTROUTING</span> <span class="flag">-o</span> <span class="iface">enp0s3</span> <span class="flag">-j</span> <span class="target">MASQUERADE</span></span>
+<span class="comment"># Porta UDP di ascolto principale su cui il server attende le connessioni in ingresso</span>
 <span class="key">ListenPort</span> = <span class="port">51820</span>
-<span class="comment">// Chiave privata crittografica del server gateway</span>
+<span class="comment"># Chiave privata crittografica del server gateway</span>
 <span class="key">PrivateKey</span> = <span class="val">*</span>
 
 <span class="sec">[Peer]</span>
-<span class="comment">// Chiave pubblica identificativa del primo client (es. Domain Controller Windows)</span>
+<span class="comment"># Chiave pubblica identificativa del primo client (es. Domain Controller Windows)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
-<span class="comment">// Indirizzo IP statico univoco assegnato al primo peer all'interno del tunnel</span>
+<span class="comment"># Indirizzo IP statico univoco assegnato al primo peer all'interno del tunnel</span>
 <span class="key">AllowedIPs</span> = <span class="ip">10.8.0.2/32</span>
 
 <span class="sec">[Peer]</span>
-<span class="comment">// Chiave pubblica identificativa del secondo client (es. Client Linux Fedora)</span>
+<span class="comment"># Chiave pubblica identificativa del secondo client (es. Client Linux Fedora)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
-<span class="comment">// Indirizzo IP statico univoco assegnato al secondo peer all'interno del tunnel</span>
+<span class="comment"># Indirizzo IP statico univoco assegnato al secondo peer all'interno del tunnel</span>
 <span class="key">AllowedIPs</span> = <span class="ip">10.8.0.3/32</span>
 
 <span class="sec">[Peer]</span>
-<span class="comment">// Chiave pubblica identificativa del terzo client (es. Client Linux Ubuntu)</span>
+<span class="comment"># Chiave pubblica identificativa del terzo client (es. Client Linux Ubuntu)</span>
 <span class="key">PublicKey</span>  = <span class="val">*</span>
-<span class="comment">// Indirizzo IP statico univoco assegnato al terzo peer all'interno del tunnel</span>
+<span class="comment"># Indirizzo IP statico univoco assegnato al terzo peer all'interno del tunnel</span>
 <span class="key">AllowedIPs</span> = <span class="ip">10.8.0.4/32</span>
 </pre>
   </section>
