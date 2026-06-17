@@ -586,11 +586,7 @@ iface <span class="iface">enp0s9</span> inet static
     <h2>Firewall — iptables <span class="badge">legacy</span> &amp; nftables</h2>
     <p>La sicurezza perimetrale e il routing interno sono gestiti tramite uno script <code>iptables</code> nativo. Il firewall implementa una politica di tipo <em>Whitelisting</em> (DROP di default), isola e unisce selettivamente i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet.</p>
     
-    <div class="callout green">
-      <strong>Miglioramento di Sicurezza:</strong> La gestione dello stato dei pacchetti è stata aggiornata utilizzando il modulo moderno <code>conntrack</code> (<code>--ctstate</code>) in sostituzione del modulo legacy <code>state</code>, garantendo maggiore stabilità nel tracciamento dei flussi.
-    </div>
-
-    <h3>Script di Configurazione (/etc/systemd/system/nat.sh)</h3>
+      <h3>Script di Configurazione (/etc/systemd/system/nat.sh)</h3>
     <pre class="legacy">
 <span class="comment">#!/bin/bash</span>
 
