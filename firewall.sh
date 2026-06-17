@@ -1,3 +1,59 @@
+Firewall — NFTables 
+legacy
+La sicurezza perimetrale e il routing interno sono gestiti tramite nftables. Il firewall implementa una politica di tipo Whitelisting (DROP di default), isola e unisce selettivamente
+i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet. La configurazione è stata migrata da iptables, mantenuta di seguito come riferimento storico.
+
+#!/usr/sbin/nft -f
+flush ruleset
+
+table ip filter {
+    chain input {
+        type filter hook input priority 0 ; policy drop ;
+        iifname lo accept                      # loopback
+        ct state established,related accept    # connessioni già stabilite
+        tcp dport 22 accept                    # SSH
+        udp dport 51820 accept                 # WireGuard
+        icmp type echo-request accept          # ping
+    }
+    chain forward {
+        type filter hook forward priority 0 ; policy drop ;
+        ct state established,related accept    # connessioni già stabilite
+        # VPN WireGuard verso tutte le interfacce
+        iifname "wg0" oifname { "enp0s9", "enp0s8", "enp0s3" } accept
+        # traffico di ritorno verso wg0
+        oifname "wg0" ct state established,related accept
+        # LAN e Windows verso internet
+        iifname "enp0s8" oifname "enp0s3" accept
+        iifname "enp0s9" oifname "enp0s3" accept
+        # tra rete Windows e LAN client (bidirezionale)
+        iifname "enp0s9" oifname "enp0s8" accept
+        iifname "enp0s8" oifname "enp0s9" accept
+    }
+    chain output {
+        type filter hook output priority 0 ; policy accept ;
+    }
+}
+
+table ip nat {
+    chain postrouting {
+        type nat hook postrouting priority 100 ; policy accept ;
+        oifname "enp0s3" masquerade           # NAT: nasconde gli IP privati dietro l'IP WAN
+    }
+}
+
+
+
+
+# /etc/sysctl.d/99-forwarding.conf
+net.ipv4.ip_forward = 1
+
+
+
+
+
+
+-- Legacy ------------------------------------------------------------------------------------------------------------
+
 #!/bin/bash
 # Azzera tutte le regole esistenti (INPUT, FORWARD, OUTPUT)
 iptables -F
