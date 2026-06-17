@@ -583,9 +583,48 @@ iface <span class="iface">enp0s9</span> inet static
   </section>
 
 <section id="firewall">
-    <h2>Firewall — iptables <span class="badge">legacy</span> &amp; nftables</h2>
+    <h2>Firewall — NFTables <span class="badge">legacy</span> &amp; Iptables</h2>
     <p>La sicurezza perimetrale e il routing interno sono gestiti tramite uno script <code>iptables</code> nativo. Il firewall implementa una politica di tipo <em>Whitelisting</em> (DROP di default), isola e unisce selettivamente i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet.</p>
-    
+<pre>
+<span class="comment">#!/usr/sbin/nft -f</span>
+<span class="key">flush ruleset</span>
+
+<span class="sec">table ip filter</span> {
+    <span class="sec">chain input</span> {
+        <span class="key">type</span> filter <span class="key">hook</span> input <span class="key">priority</span> 0 ; <span class="key">policy</span> <span class="target">drop</span> ;
+        <span class="key">iifname</span> lo <span class="target">accept</span>                      <span class="comment"># loopback</span>
+        <span class="key">ct state</span> <span class="val">established,related</span> <span class="target">accept</span>    <span class="comment"># connessioni già stabilite</span>
+        <span class="key">tcp dport</span> <span class="port">22</span> <span class="target">accept</span>                    <span class="comment"># SSH</span>
+        <span class="key">udp dport</span> <span class="port">51820</span> <span class="target">accept</span>                 <span class="comment"># WireGuard</span>
+        <span class="key">icmp type</span> <span class="val">echo-request</span> <span class="target">accept</span>          <span class="comment"># ping</span>
+    }
+    <span class="sec">chain forward</span> {
+        <span class="key">type</span> filter <span class="key">hook</span> forward <span class="key">priority</span> 0 ; <span class="key">policy</span> <span class="target">drop</span> ;
+        <span class="key">ct state</span> <span class="val">established,related</span> <span class="target">accept</span>    <span class="comment"># connessioni già stabilite</span>
+        <span class="comment"># VPN WireGuard verso tutte le interfacce</span>
+        <span class="key">iifname</span> <span class="iface">"wg0"</span> <span class="key">oifname</span> { <span class="iface">"enp0s9"</span>, <span class="iface">"enp0s8"</span>, <span class="iface">"enp0s3"</span> } <span class="target">accept</span>
+        <span class="comment"># traffico di ritorno verso wg0</span>
+        <span class="key">oifname</span> <span class="iface">"wg0"</span> <span class="key">ct state</span> <span class="val">established,related</span> <span class="target">accept</span>
+        <span class="comment"># LAN e Windows verso internet</span>
+        <span class="key">iifname</span> <span class="iface">"enp0s8"</span> <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">accept</span>
+        <span class="key">iifname</span> <span class="iface">"enp0s9"</span> <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">accept</span>
+        <span class="comment"># tra rete Windows e LAN client (bidirezionale)</span>
+        <span class="key">iifname</span> <span class="iface">"enp0s9"</span> <span class="key">oifname</span> <span class="iface">"enp0s8"</span> <span class="target">accept</span>
+        <span class="key">iifname</span> <span class="iface">"enp0s8"</span> <span class="key">oifname</span> <span class="iface">"enp0s9"</span> <span class="target">accept</span>
+    }
+    <span class="sec">chain output</span> {
+        <span class="key">type</span> filter <span class="key">hook</span> output <span class="key">priority</span> 0 ; <span class="key">policy</span> <span class="target">accept</span> ;
+    }
+}
+
+<span class="sec">table ip nat</span> {
+    <span class="sec">chain postrouting</span> {
+        <span class="key">type</span> nat <span class="key">hook</span> postrouting <span class="key">priority</span> 100 ; <span class="key">policy</span> <span class="target">accept</span> ;
+        <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">masquerade</span>           <span class="comment"># NAT: nasconde gli IP privati dietro l'IP WAN</span>
+    }
+}
+</pre>
+  
       <h3>Script di Configurazione (/etc/systemd/system/nat.sh)</h3>
     <pre class="legacy">
 <span class="comment">#!/bin/bash</span>
