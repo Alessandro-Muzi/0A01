@@ -1,4 +1,4 @@
-Firewall — NFTables 
+Firewall — nftables 
 legacy
 La sicurezza perimetrale e il routing interno sono gestiti tramite nftables. Il firewall implementa una politica di tipo Whitelisting (DROP di default), isola e unisce selettivamente
 i segmenti di rete e attiva il NAT (Masquerading) per l'uscita su Internet. La configurazione è stata migrata da iptables, mantenuta di seguito come riferimento storico.
