@@ -631,6 +631,11 @@ iface <span class="iface">enp0s9</span> inet static
     }
 }
 </pre>
+
+<pre>
+<span class="comment"># /etc/sysctl.d/99-forwarding.conf</span>
+<span class="key">net.ipv4.ip_forward</span> = <span class="val">1</span>
+</pre>
   
       <h3>Script di Configurazione (/etc/systemd/system/nat.sh)</h3>
     <pre class="legacy">
