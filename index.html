@@ -921,17 +921,17 @@ TrustAnchors          Primary    <span class="val">True</span>
 <span class="comment">// Pulisce i metadati Docker e assegna la label service_name</span>
 <span class="key">discovery.relabel</span> <span class="val">"docker_targets"</span> {
   <span class="key">targets</span> = <span class="val">discovery.docker.docker_containers.targets</span>
-  <span class="key">rule</span> {
+  rule {
     <span class="key">source_labels</span> = [<span class="val">"__meta_docker_container_name"</span>]
-    <span class="key">regex</span>          = <span class="val">"/(.+)"</span>
-    <span class="key">target_label</span>   = <span class="val">"service_name"</span>
+    <span class="key">regex</span>         = <span class="val">"/(.+)"</span>
+    <span class="key">target_label</span>  = <span class="val">"service_name"</span>
   }
 }
 
 <span class="comment">// Raccoglie i log dallo stdout/stderr di tutti i container scoperti</span>
 <span class="key">loki.source.docker</span> <span class="val">"docker_logs"</span> {
-  <span class="key">host</span>       = <span class="val">"unix:///var/run/docker.sock"</span>
-  <span class="key">targets</span>    = <span class="val">discovery.docker.docker_containers.targets</span>
+  <span class="key">host</span> = <span class="val">"unix:///var/run/docker.sock"</span>
+  <span class="key">targets</span> = <span class="val">discovery.docker.docker_containers.targets</span>
   <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
 }
 
@@ -939,15 +939,30 @@ TrustAnchors          Primary    <span class="val">True</span>
 // stage.docker estrae timestamp, stream (stdout/stderr) e messaggio
 // e corregge il fuso orario per la visualizzazione in Grafana</span>
 <span class="key">loki.process</span> <span class="val">"parse_docker_timestamp"</span> {
-  <span class="key">stage.docker</span> {}
+  stage.docker {}
   <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
 }
 
-  <span class="comment">// Spinge i log raccolti verso Loki tramite la rete interna Docker</span>
-<span class="key">loki.write</span> <span class="val">"local_loki"</span> {
-  <span class="key">endpoint</span> {
+<span class="comment"># Legge il file eve.json generato da Suricata (formato JSON strutturato)</span>
+<span class="key">local.file_match</span> <span class="val">"suricata_eve"</span> {
+  <span class="key">path_targets</span> = [
+    {<span class="key">__path__</span> = <span class="val">"/var/log/suricata/eve.json"</span>, <span class="key">job</span> = <span class="val">"suricata"</span>},
+  ]
+}
+
+<span class="comment"># Inoltra i log Suricata letti a Loki</span>
+<span class="key">loki.source.file</span> <span class="val">"suricata_logs"</span> {
+  <span class="key">targets</span> = <span class="val">local.file_match.suricata_eve.targets</span>
+  <span class="key">forward_to</span> = [<span class="val">loki.write.local_loki.receiver</span>]
+}
+
+<span class="comment">// Spinge i log raccolti verso Loki tramite la rete interna Docker</span>
+<span class="key">loki.write</span> <span class="val">"local_loki"</span>{
+  endpoint {
     <span class="key">url</span> = <span class="val">"http://loki:3100/loki/api/v1/push"</span>
   }
+}
+
 }</pre>
   <h3>PROMETHEUS (prometheus.yml)</h3>
 <pre>
