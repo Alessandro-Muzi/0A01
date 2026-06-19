@@ -1129,13 +1129,8 @@ TrustAnchors          Primary    <span class="val">True</span>
   <h2>Backup &amp; Cron</h2>
   <p>Gestione automatizzata dei backup per le share Samba tramite <code>rsync</code> e pianificazione periodica via <code>cron</code>. Il sistema implementa una politica di rotazione dei dati per mantenere uno storico di 7 giorni.</p>
   <h3>Script di Backup (/usr/local/bin/backup-samba.sh)</h3>
-<p>Le metriche del backup vengono raccolte tramite il textfile collector di node_exporter, che gira nativamente sull'host (non containerizzato). È stato necessario abilitare il flag dedicato nel file di configurazione di sistema:</p>
+
 <pre>
-<span class="comment"># /etc/default/prometheus-node-exporter</span>
-<span class="key">ARGS</span>=<span class="val">"--collector.textfile.directory=/var/lib/node_exporter/textfile_collector"</span>
-</pre>
-  
-  <pre>
 <span class="comment">#!/bin/bash</span>
 <span class="key">set</span> -euo pipefail
 
@@ -1202,6 +1197,12 @@ done
 <span class="key">backup_samba_timestamp</span> $(date +%s)
 EOF
 <span class="key">log</span> <span class="val">"__Fine backup__"</span>
+</pre>
+
+<p>Le metriche del backup vengono raccolte tramite il textfile collector di node_exporter, che gira nativamente sull'host (non containerizzato). È stato necessario abilitare il flag dedicato nel file di configurazione di sistema:</p>
+<pre>
+<span class="comment"># /etc/default/prometheus-node-exporter</span>
+<span class="key">ARGS</span>=<span class="val">"--collector.textfile.directory=/var/lib/node_exporter/textfile_collector"</span>
 </pre>
 
   <h3>Pianificazione automatica (crontab)</h3>
