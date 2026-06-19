@@ -1131,55 +1131,70 @@ TrustAnchors          Primary    <span class="val">True</span>
   <h3>Script di Backup (/usr/local/bin/backup-samba.sh)</h3>
   <pre>
 <span class="comment">#!/bin/bash</span>
-<span class="key">set</span> <span class="flag">-euo</span> pipefail
+<span class="key">set</span> -euo pipefail
 
-<span class="comment"># Sorgente</span>
-<span class="key">SOURCE</span>=<span class="path">"/srv/samba/"</span>
-<span class="comment"># Destinazione locale</span>
-<span class="key">BACKUP_ROOT</span>=<span class="path">"/backup/samba"</span>
-<span class="comment"># Numero backup da mantenere</span>
+<span class="comment">#sorgente</span>
+<span class="key">SOURCE</span>=<span class="val">"/srv/samba/"</span>
+<span class="comment">#destinazione locale</span>
+<span class="key">BACKUP_ROOT</span>=<span class="val">"/backup/samba"</span>
+<span class="comment">#numero backup da mantenere</span>
 <span class="key">RETENTION</span>=<span class="val">7</span>
-<span class="comment"># Data backup</span>
+<span class="comment">#data backup</span>
 <span class="key">DATE</span>=$(<span class="key">date</span> +<span class="val">"%Y-%m-%d"</span>)
-<span class="comment"># Cartella backup corrente</span>
+<span class="comment">#cartella backup corrente</span>
 <span class="key">DEST</span>=<span class="val">"${BACKUP_ROOT}/backup_${DATE}"</span>
-<span class="key">LOGFILE</span>=<span class="path">"/var/log/backup-samba.log"</span>
+<span class="key">LOGFILE</span>=<span class="val">"/var/log/backup-samba.log"</span>
 
-<span class="comment"># Crea directory root se non esiste</span>
-<span class="key">mkdir</span> <span class="flag">-p</span> <span class="path">"${BACKUP_ROOT}"</span>
+<span class="comment">#crea cartella root se non esiste</span>
+<span class="key">mkdir</span> -p <span class="val">"${BACKUP_ROOT}"</span>
 
 <span class="key">log</span> () {
-    <span class="key">echo</span> <span class="val">"$(date '+%Y-%m-%d %H:%M:%S') - $1"</span> >> <span class="path">"${LOGFILE}"</span>
+    <span class="key">echo</span> <span class="val">"$(date '+%Y-%m-%d %H:%M:%S') - $1"</span> >> <span class="val">"${LOGFILE}"</span>
 }
-
 <span class="key">log</span> <span class="val">"___Avvio Backup__"</span>
+
+<span class="comment"># Variabile di stato per le metriche Prometheus (default: errore)</span>
+<span class="key">BACKUP_STATUS</span>=<span class="val">0</span>
+<span class="comment"># Percorso file metriche per node_exporter textfile collector</span>
+<span class="key">METRICS_FILE</span>=<span class="val">"/var/lib/node_exporter/textfile_collector/backup_samba.prom"</span>
 
 <span class="comment"># Backup rsync</span>
 <span class="comment">#-aAXv:      -a: modalità archivio, preserva permessi, ownership, timestamp, symlink, dir ricorsive</span>
-<span class="comment">#            -A: preserva ACL</span>
-<span class="comment">#            -X: preserva extended attributes</span>
+<span class="comment">#            -A: preserva ACL -X: preserva extended attributes</span>
 <span class="comment">#            -v: verbose</span>
 <span class="comment">## --delete rimuove dalla destinazione i file che non esistono più nella sorgente.</span>
-<span class="key">if</span> <span class="key">rsync</span> <span class="flag">-aAXv</span> <span class="flag">--delete</span> <span class="path">"${SOURCE}"</span> <span class="path">"${DEST}"</span> >> <span class="path">"${LOGFILE}"</span> 2>&1; <span class="key">then</span>
+if <span class="key">rsync</span> -aAXv --delete <span class="val">"${SOURCE}"</span> <span class="val">"${DEST}"</span> >> <span class="val">"${LOGFILE}"</span> 2>&amp;1; then
      <span class="key">log</span> <span class="val">"SUCCESSO: Backup completato in ${DEST}"</span>
-     <span class="key">else</span>
+     <span class="key">BACKUP_STATUS</span>=<span class="val">1</span>
+     else
      <span class="key">log</span> <span class="val">"ERRORE: Backup fallito"</span>
+     <span class="key">BACKUP_STATUS</span>=<span class="val">0</span>
+     <span class="comment"># In caso di errore scrivi le metriche prima di uscire</span>
+     <span class="comment"># così Prometheus registra il fallimento anche se lo script termina qui</span>
+     <span class="key">echo</span> <span class="val">"backup_samba_success 0"</span> > <span class="val">"${METRICS_FILE}"</span>
+     <span class="key">echo</span> <span class="val">"backup_samba_timestamp $(date +%s)"</span> >> <span class="val">"${METRICS_FILE}"</span>
      <span class="key">exit</span> <span class="val">1</span>
-<span class="key">fi</span>
+fi
 
-<span class="comment"># Rotazione: elimina backup più vecchi</span>
-<span class="key">cd</span> <span class="path">"${BACKUP_ROOT}"</span> || <span class="key">exit</span> <span class="val">1</span>
-
+<span class="comment">#rotazione: elimina backup più vecchi</span>
+<span class="key">cd</span> <span class="val">"${BACKUP_ROOT}"</span> || <span class="key">exit</span> <span class="val">1</span>
 <span class="comment"># 1. ls -1dt */  -> Elenca le cartelle (-d) su una singola colonna (-1) ordinate dalla più recente alla più vecchia (-t)</span>
 <span class="comment"># 2. tail -n +8 -> Salta le prime 7 cartelle (i backup da tenere) e prende solo quelle dall'ottava in poi</span>
-<span class="key">OLD_BACKUPS</span>=$(<span class="key">ls</span> <span class="flag">-1dt</span> backup_* 2>/dev/null | <span class="key">tail</span> <span class="flag">-n</span> +$((RETENTION + 1)))
+<span class="key">OLD_BACKUPS</span>=$(<span class="key">ls</span> -1dt backup_* 2>/dev/null | <span class="key">tail</span> -n +$((<span class="key">RETENTION</span> + <span class="val">1</span>)))
 
-<span class="key">for</span> OLD <span class="key">in</span> ${OLD_BACKUPS}; <span class="key">do</span>
+for <span class="key">OLD</span> in <span class="val">${OLD_BACKUPS}</span>; do
     <span class="key">log</span> <span class="val">"Elimino vecchio backup: ${OLD}"</span>
-    <span class="key">rm</span> <span class="flag">-rf</span> <span class="path">"${OLD}"</span>
-<span class="key">done</span>
+    <span class="key">rm</span> -rf <span class="val">"${OLD}"</span>
+done
 
-<span class="key">log</span> <span class="val">"__Fine backup__"</span>
+<span class="key">cat</span> > <span class="val">"${METRICS_FILE}"</span> &lt;&lt; EOF
+<span class="comment"># HELP backup_samba_success Esito ultimo backup (1=successo, 0=errore)</span>
+<span class="comment"># TYPE backup_samba_success gauge</span>
+<span class="key">backup_samba_success</span> <span class="val">${BACKUP_STATUS}</span>
+<span class="comment"># HELP backup_samba_timestamp Timestamp ultimo backup</span>
+<span class="comment"># TYPE backup_samba_timestamp gauge</span>
+<span class="key">backup_samba_timestamp</span> $(date +%s)
+EOF
 </pre>
 
   <h3>Pianificazione automatica (crontab)</h3>
