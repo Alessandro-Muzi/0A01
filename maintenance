@@ -1,64 +1,82 @@
-#!/bin/bash
+Gestione automatizzata dei backup per le share Samba tramite rsync e pianificazione periodica via cron. Il sistema implementa una politica di rotazione dei dati per mantenere uno storico di 7 giorni.
+Script di Backup (/usr/local/bin/backup-samba.sh)
 
+#!/bin/bash
 set -euo pipefail
 
-# Sorgente
+#sorgente
 SOURCE="/srv/samba/"
-
-# Destinazione locale
+#destinazione locale
 BACKUP_ROOT="/backup/samba"
-
-# Numero backup da mantenere
+#numero backup da mantenere
 RETENTION=7
-
-# Data backup
+#data backup
 DATE=$(date +"%Y-%m-%d")
-
-# Cartella backup corrente
+#cartella backup corrente
 DEST="${BACKUP_ROOT}/backup_${DATE}"
-
 LOGFILE="/var/log/backup-samba.log"
 
-
-# Crea directory root se non esiste
+#crea cartella root se non esiste
 mkdir -p "${BACKUP_ROOT}"
 
 log () {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "${LOGFILE}"
 }
-
-
 log "___Avvio Backup__"
 
+# Variabile di stato per le metriche Prometheus (default: errore)
+BACKUP_STATUS=0
+# Percorso file metriche per node_exporter textfile collector
+METRICS_FILE="/var/lib/node_exporter/textfile_collector/backup_samba.prom"
+
 # Backup rsync
-#-aAXv:      -a: modalità archivio , preserva permessi, ownership, timestap, symlink, dir ricorsive
-#            -A: preserva ACL
-#            -X: preserva extended attributes 
+#-aAXv:      -a: modalità archivio, preserva permessi, ownership, timestamp, symlink, dir ricorsive
+#            -A: preserva ACL -X: preserva extended attributes
 #            -v: verbose
 ## --delete rimuove dalla destinazione i file che non esistono più nella sorgente.
 if rsync -aAXv --delete "${SOURCE}" "${DEST}" >> "${LOGFILE}" 2>&1; then
      log "SUCCESSO: Backup completato in ${DEST}"
-else
+     BACKUP_STATUS=1
+     else
      log "ERRORE: Backup fallito"
+     BACKUP_STATUS=0
+     # In caso di errore scrivi le metriche prima di uscire
+     # così Prometheus registra il fallimento anche se lo script termina qui
+     echo "backup_samba_success 0" > "${METRICS_FILE}"
+     echo "backup_samba_timestamp $(date +%s)" >> "${METRICS_FILE}"
      exit 1
 fi
 
-# Rotazione: elimina backup più vecchi
+#rotazione: elimina backup più vecchi
 cd "${BACKUP_ROOT}" || exit 1
-
 # 1. ls -1dt */  -> Elenca le cartelle (-d) su una singola colonna (-1) ordinate dalla più recente alla più vecchia (-t)
 # 2. tail -n +8 -> Salta le prime 7 cartelle (i backup da tenere) e prende solo quelle dall'ottava in poi
 OLD_BACKUPS=$(ls -1dt backup_* 2>/dev/null | tail -n +$((RETENTION + 1)))
-  
+
 for OLD in ${OLD_BACKUPS}; do
     log "Elimino vecchio backup: ${OLD}"
     rm -rf "${OLD}"
 done
 
+cat > "${METRICS_FILE}" << EOF
+# HELP backup_samba_success Esito ultimo backup (1=successo, 0=errore)
+# TYPE backup_samba_success gauge
+backup_samba_success ${BACKUP_STATUS}
+# HELP backup_samba_timestamp Timestamp ultimo backup
+# TYPE backup_samba_timestamp gauge
+backup_samba_timestamp $(date +%s)
+EOF
 log "__Fine backup__"
 
-----------------------------------------------------------------------------------
-crontab -e
+Le metriche del backup vengono raccolte tramite il textfile collector di node_exporter, che gira nativamente sull'host (non containerizzato). È stato necessario abilitare il flag dedicato nel file di configurazione di sistema:
+
+# /etc/default/prometheus-node-exporter
+ARGS="--collector.textfile.directory=/var/lib/node_exporter/textfile_collector"
+
+Pianificazione automatica (crontab)
+
+# crontab -e
 0 2 * * * /usr/local/bin/backup-samba.sh >> /var/log/backup-samba.log 2>&1
+
 ## esegue il backup ogni notte alle 02:00 ##
 
