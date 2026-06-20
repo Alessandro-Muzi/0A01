@@ -1242,6 +1242,9 @@ EOF
 <h3>estratto da /etc/suricata/suricata.yaml</h3>
 
 <pre>
+<span class="comment"># Il Community ID è un hash standardizzato calcolato sui 5-tuple di rete</span>
+<span class="comment"># (IP sorgente/destinazione, porte, protocollo) che permette di correlare</span>
+<span class="comment"># lo stesso flusso di traffico tra tool diversi (es. Suricata,Wireshark, Zeek, SIEM)</span>
 <span class="comment"># enable/disable the community id feature.</span>
 <span class="key">community-id</span>: <span class="val">true</span>
 
