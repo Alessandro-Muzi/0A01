@@ -403,6 +403,9 @@ main {
 
   <div class="nav-section-label">Ops</div>
   <a href="#maintenance">Backup & Cron</a>
+
+  <div class="nav-section-label">Sicurezza</div>
+  <a href="#sicurezza">Suricata</a>
   <span class="nav-footer">©2026 Alessandro Muzi</span>
   
 </nav>
@@ -1229,6 +1232,30 @@ EOF
   <pre>
 <span class="comment"># crontab -e</span>
 <span class="val">0 2 * * *</span> <span class="path">/usr/local/bin/backup-samba.sh</span> >> <span class="path">/var/log/backup-samba.log</span> 2>&1
+</pre>
+</section>
+
+  <section id="sicurezza">
+  <h2>Suricata</h2>
+
+<p>Suricata in modalità IDS, configurato sull'interfaccia WAN con community-id abilitato. I log (formato EVE/JSON) sono integrati nello stack di monitoring esistente tramite <strong>Grafana Alloy</strong>,<strong> Loki</strong> e <strong>Grafana</strong>, per la visualizzazione centralizzata degli alert.</p>
+<h3>estratto da /etc/suricata/suricata.yaml</h3>
+
+<pre>
+<span class="comment"># enable/disable the community id feature.</span>
+<span class="key">community-id</span>: <span class="val">true</span>
+
+<span class="comment"># Linux high speed capture support</span>
+<span class="sec">af-packet</span>:
+  - <span class="key">interface</span>: <span class="iface">enp0s3</span>
+
+<span class="comment"># Cross platform libpcap capture support</span>
+<span class="sec">pcap</span>:
+  - <span class="key">interface</span>: <span class="iface">enp0s3</span>
+
+<span class="sec">pfring</span>:
+  - <span class="key">interface</span>: <span class="iface">enp0s3</span>
+
 </pre>
 </section>
 <!--</script>-->
