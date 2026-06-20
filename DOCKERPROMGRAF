@@ -1,11 +1,9 @@
-##Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, 
-##Loki e Alloy gestiscono i log, Grafana li visualizza sulla porta 3000.
+Stack di monitoraggio containerizzato via Docker Compose. Prometheus e cAdvisor raccolgono metriche, Loki e Grafana Alloy gestiscono i log, Grafana li visualizza sulla porta 3000.
 
 
 
 GRAFANA ALLOY (config.alloy)
------------------------------------------------------------------------------------------------------
-
+------------------------------------------------------------------------------------------------------------------------
 
 // Scopre automaticamente tutti i container Docker attivi tramite il socket
 discovery.docker "docker_containers" {
@@ -17,15 +15,15 @@ discovery.relabel "docker_targets" {
   targets = discovery.docker.docker_containers.targets
   rule {
     source_labels = ["__meta_docker_container_name"]
-    regex          = "/(.+)"
-    target_label   = "service_name"
+    regex         = "/(.+)"
+    target_label  = "service_name"
   }
 }
 
 // Raccoglie i log dallo stdout/stderr di tutti i container scoperti
 loki.source.docker "docker_logs" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.docker.docker_containers.targets
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.docker_containers.targets
   forward_to = [loki.write.local_loki.receiver]
 }
 
@@ -37,18 +35,28 @@ loki.process "parse_docker_timestamp" {
   forward_to = [loki.write.local_loki.receiver]
 }
 
+# Legge il file eve.json generato da Suricata (formato JSON strutturato)
+local.file_match "suricata_eve" {
+  path_targets = [
+    {__path__ = "/var/log/suricata/eve.json", job = "suricata"},
+  ]
+}
+
+# Inoltra i log Suricata letti a Loki
+loki.source.file "suricata_logs" {
+  targets = local.file_match.suricata_eve.targets
+  forward_to = [loki.write.local_loki.receiver]
+}
+
 // Spinge i log raccolti verso Loki tramite la rete interna Docker
-loki.write "local_loki" {
+loki.write "local_loki"{
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
   }
 }
 
-
-
-
 PROMETHEUS (prometheus.yml)
----------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 
 global:
   # Intervallo di raccolta metriche: ogni 15 secondi va a "bussare" a tutti i target
@@ -65,11 +73,9 @@ scrape_configs:
     static_configs:
       - targets: [cadvisor:8080]
 
-
-
-
 LOKI (loki-config.yaml)
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
 
 # Disabilita autenticazione multi-tenant
 auth_enabled: false
@@ -121,10 +127,9 @@ limits_config:
   ingestion_rate_mb: 4
   ingestion_burst_size_mb: 6
 
-
-
 DOCKER (docker-compose.yml)
----------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
 services:
   prometheus:
     image: prom/prometheus
@@ -144,32 +149,32 @@ services:
     restart: always
     ports:
       - "3000:3000"
-  volumes:
-    # Volume persistente: conserva dashboard e configurazioni tra i riavvii
-    - grafana_data:/var/lib/grafana
-    - /etc/localtime:/etc/localtime:ro
-  environment:
-    # Password amministratore (da cambiare in produzione)
-    - GF_SECURITY_ADMIN_PASSWORD=admin
-    # Fuso orario: allinea Grafana all'ora locale per la corretta visualizzazione dei log
-    - TZ=Europe/Rome
-  networks:
-    - monitoring
+    volumes:
+      # Volume persistente: conserva dashboard e configurazioni tra i riavvii
+      - grafana_data:/var/lib/grafana
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      # Password amministratore (da cambiare in produzione)
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      # Fuso orario: allinea Grafana all'ora locale per la corretta visualizzazione dei log
+      - TZ=Europe/Rome
+    networks:
+      - monitoring
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     ports:
       - "8080:8080"
-  volumes:
-    # Accesso in sola lettura al filesystem host per le metriche dei container
-    - /:/rootfs:ro
-    - /var/run:/var/run:ro
-    - /sys:/sys:ro
-    - /var/lib/docker/:/var/lib/docker:ro
-    - /dev/disk/:/dev/disk:ro
-  networks:
-    - monitoring
+    volumes:
+      # Accesso in sola lettura al filesystem host per le metriche dei container
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - monitoring
 
   loki:
     image: grafana/loki:latest
@@ -209,22 +214,26 @@ services:
       # File di configurazione Alloy in formato River/HCL
       - /opt/lab-docker/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /etc/localtime:/etc/localtime:ro
-    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy /etc/alloy/config.alloy
+      # Monta i log Suricata in sola lettura per la raccolta da parte di Alloy
+      - /var/log/suricata:/var/log/suricata:ro
+    
+    command: run --server.http.listen-addr=0.0.0.0:12345
+         --storage.path=/tmp/alloy /etc/alloy/config.alloy
+    
     # Alloy parte solo dopo che Loki è disponibile
     depends_on:
       - loki
     networks:
       - monitoring
 
- volumes:
-   # Volumi named per la persistenza dei dati tra i riavvii
-   grafana_data:
-   loki_data:
+volumes:
+  # Volumi named per la persistenza dei dati tra i riavvii
+  grafana_data:
+  loki_data:
 
- networks:
-   # Rete bridge dedicata — garantisce risoluzione DNS interna tra i container
-   monitoring:
+networks:
+  # Rete bridge dedicata — garantisce risoluzione DNS interna tra i container
+  monitoring:
     driver: bridge
-
 
 Usare l'Explore di Grafana con la query {service_name=~".+"} per visualizzare i log raccolti da Alloy. La migrazione da Promtail ad Alloy è stata necessaria a seguito della sua dismissione ufficiale (EOL) il 2 marzo 2026.
