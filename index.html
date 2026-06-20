@@ -971,11 +971,11 @@ TrustAnchors          Primary    <span class="val">True</span>
 </pre>
   <h3>PROMETHEUS (prometheus.yml)</h3>
 <pre>
-<span class="key">global</span>:
+<span class="sec">global</span>:
   <span class="comment"># Intervallo di raccolta metriche: ogni 15 secondi va a "bussare" a tutti i target</span>
   <span class="key">scrape_interval</span>: <span class="val">15s</span>
 
-<span class="key">scrape_configs</span>:
+<span class="sec">scrape_configs</span>:
   - <span class="key">job_name</span>: <span class="val">'node_exporter'</span>
     <span class="comment"># Metriche hardware della macchina host Debian (CPU, RAM, disco, rete)</span>
     <span class="key">static_configs</span>:
