@@ -13,10 +13,10 @@ la prima LAN (10.0.10.1) è destinata a 2 client Linux (Fedora=10.0.10.101, Ubun
 a una macchina Windows Server, Controller di Dominio, che gestisce Active Directory e server DNS , per tutta la struttura.Tutto il traffico
 della rete privata passa crittografato nel tunnel di WireGuard (VPN).
 
-Samba, da Debian, tramite Winbind si interfaccia con AD, e per mezzo di CUPS gestisce un Print Server condiviso. Grafana, Prometheus, Loki, Grafana Alloy e cAdvisor, containerizzati in Docker, monitorano e loggano lo stato delle macchine e della rete.
+Samba, da Debian, tramite Winbind si interfaccia con AD, e per mezzo di CUPS gestisce un Print Server condiviso. Grafana, Prometheus, Loki, Grafana Alloy e cAdvisor, containerizzati in Docker, monitorano e loggano lo stato delle macchine e della rete, inclusi gli alert generati da Suricata, il sistema di rilevamento intrusioni (IDS) attivo sul gateway
 
 Rsync e Cron gestiscono in modo incrementale il backup automatizzato tramite script, le cui metriche sono integrate nello stesso stack di monitoring. 
-Suricata completa il quadro della sicurezza con il rilevamento attivo delle intrusioni (IDS)
+
 
 [Interfaces](interfaces)
 
