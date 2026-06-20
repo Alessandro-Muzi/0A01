@@ -992,11 +992,11 @@ TrustAnchors          Primary    <span class="val">True</span>
 <span class="comment"># Disabilita autenticazione multi-tenant</span>
 <span class="key">auth_enabled</span>: <span class="val">false</span>
 
-<span class="key">server</span>:
+<span class="sec">server</span>:
   <span class="comment"># Porta HTTP di ascolto</span>
   <span class="key">http_listen_port</span>: <span class="val">3100</span>
 
-<span class="key">ingester</span>:
+<span class="sec">ingester</span>:
   <span class="key">wal</span>:
     <span class="comment"># Directory Write-Ahead Log per durabilità dei dati</span>
     <span class="key">dir</span>: <span class="val">/loki/wal</span>
@@ -1008,7 +1008,7 @@ TrustAnchors          Primary    <span class="val">True</span>
         <span class="key">store</span>: <span class="val">inmemory</span>
       <span class="key">replication_factor</span>: <span class="val">1</span>
 
-<span class="key">schema_config</span>:
+<span class="sec">schema_config</span>:
   <span class="key">configs</span>:
     - <span class="key">from</span>: <span class="val">2020-10-24</span>
       <span class="comment"># Backend TSDB — più efficiente di BoltDB per volumi elevati</span>
@@ -1021,7 +1021,7 @@ TrustAnchors          Primary    <span class="val">True</span>
         <span class="comment"># Rotazione indice ogni 24 ore</span>
         <span class="key">period</span>: <span class="val">24h</span>
 
-<span class="key">storage_config</span>:
+<span class="sec">storage_config</span>:
   <span class="key">tsdb_shipper</span>:
     <span class="key">active_index_directory</span>: <span class="val">/loki/index</span>
     <span class="key">cache_location</span>: <span class="val">/loki/index_cache</span>
@@ -1029,7 +1029,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="comment"># Directory locale per i chunk dei log</span>
     <span class="key">directory</span>: <span class="val">/loki/chunks</span>
 
-<span class="key">limits_config</span>:
+<span class="sec">limits_config</span>:
   <span class="comment"># Disabilita metadata strutturati non necessari in questa configurazione</span>
   <span class="key">allow_structured_metadata</span>: <span class="val">false</span>
   <span class="comment"># Accetta log con timestamp nel passato</span>
