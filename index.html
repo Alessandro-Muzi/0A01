@@ -1042,7 +1042,7 @@ TrustAnchors          Primary    <span class="val">True</span>
   <h3>DOCKER (docker-compose.yml)</h3>
   <pre>
 <span class="key">services</span>:
-  <span class="key">prometheus</span>:
+  <span class="sec">prometheus</span>:
     <span class="key">image</span>: <span class="val">prom/prometheus</span>
     <span class="key">container_name</span>: <span class="val">prometheus</span>
     <span class="key">restart</span>: <span class="val">always</span>
@@ -1054,7 +1054,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
-  <span class="key">grafana</span>:
+  <span class="sec">grafana</span>:
     <span class="key">image</span>: <span class="val">grafana/grafana:latest</span>
     <span class="key">container_name</span>: <span class="val">grafana</span>
     <span class="key">restart</span>: <span class="val">always</span>
@@ -1072,7 +1072,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
-  <span class="key">cadvisor</span>:
+  <span class="sec">cadvisor</span>:
     <span class="key">image</span>: <span class="val">gcr.io/cadvisor/cadvisor:latest</span>
     <span class="key">container_name</span>: <span class="val">cadvisor</span>
     <span class="key">ports</span>:
@@ -1087,7 +1087,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
-  <span class="key">loki</span>:
+  <span class="sec">loki</span>:
     <span class="key">image</span>: <span class="val">grafana/loki:latest</span>
     <span class="comment"># Root necessario per scrivere nella directory WAL</span>
     <span class="key">user</span>: <span class="val">"0:0"</span>
@@ -1107,7 +1107,7 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
-  <span class="key">alloy</span>:
+  <span class="sec">alloy</span>:
     <span class="key">image</span>: <span class="val">grafana/alloy:latest</span>
     <span class="key">container_name</span>: <span class="val">alloy</span>
     <span class="key">restart</span>: <span class="val">always</span>
@@ -1137,12 +1137,12 @@ TrustAnchors          Primary    <span class="val">True</span>
     <span class="key">networks</span>:
       - <span class="val">monitoring</span>
 
-<span class="key">volumes</span>:
+<span class="sec">volumes</span>:
   <span class="comment"># Volumi named per la persistenza dei dati tra i riavvii</span>
   <span class="val">grafana_data</span>:
   <span class="val">loki_data</span>:
 
-<span class="key">networks</span>:
+<span class="sec">networks</span>:
   <span class="comment"># Rete bridge dedicata — garantisce risoluzione DNS interna tra i container</span>
   <span class="key">monitoring</span>:
     <span class="key">driver</span>: <span class="val">bridge</span></pre>
