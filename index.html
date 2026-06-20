@@ -1120,7 +1120,7 @@ TrustAnchors          Primary    <span class="val">True</span>
       <span class="comment"># File di configurazione Alloy in formato River/HCL</span>
       - <span class="val">/opt/lab-docker/alloy/config.alloy:/etc/alloy/config.alloy:ro</span>
       - <span class="val">/etc/localtime:/etc/localtime:ro</span>
-    <span class="comment"># Monta i log Suricata in sola lettura per la raccolta da parte di Alloy</span>
+      <span class="comment"># Monta i log Suricata in sola lettura per la raccolta da parte di Alloy</span>
       - <span class="val">/var/log/suricata</span>:<span class="val">/var/log/suricata</span>:<span class="val">ro</span>
     
     <span class="key">command</span>: run --server.http.listen-addr=0.0.0.0:12345
