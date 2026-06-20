@@ -617,6 +617,7 @@ iface <span class="iface">enp0s9</span> inet static
         <span class="key">tcp dport</span> <span class="port">22</span> <span class="target">accept</span>                    <span class="comment"># SSH</span>
         <span class="key">udp dport</span> <span class="port">51820</span> <span class="target">accept</span>                 <span class="comment"># WireGuard</span>
         <span class="key">icmp type</span> <span class="val">echo-request</span> <span class="target">accept</span>          <span class="comment"># ping</span>
+        <span class="key">ip saddr</span> <span class="val">172.19.0.0/16</span> <span class="key">tcp dport</span> <span class="val">9100</span> <span class="target">accept</span>  <span class="comment"># node_exporter da rete Docker monitoring</span>
     }
     <span class="sec">chain forward</span> {
         <span class="key">type</span> filter <span class="key">hook</span> forward <span class="key">priority</span> 0 ; <span class="key">policy</span> <span class="target">drop</span> ;
