@@ -643,7 +643,10 @@ iface <span class="iface">enp0s9</span> inet static
         <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">masquerade</span>           <span class="comment"># NAT: nasconde gli IP privati dietro l'IP WAN</span>
     }
 }
-</pre>
+</pre><div class="callout">
+  <strong>Nota tecnica:</strong> la sintassi <code>iif</code>/<code>oif</code> risolve l'interfaccia al momento del caricamento del ruleset e fallisce se questa non esiste ancora (es. un'interfaccia VPN non ancora attiva al boot). <code>iifname</code>/<code>oifname</code> invece confrontano il nome come stringa a runtime, permettendo il caricamento delle regole anche prima che l'interfaccia sia disponibile — la scelta adottata in questa configurazione.
+</div>
+  
 
 <pre>
 <span class="comment"># /etc/sysctl.d/99-forwarding.conf</span>
