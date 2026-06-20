@@ -140,7 +140,7 @@ nav {
 /* ── MAIN ────────────────────────────────── */
 main { 
   padding: 48px 32px 80px;
-  max-width: 850px;
+  max-width: 860px;
   margin-left: 0;
   margin-right: auto;
   width: 100%;
@@ -1122,7 +1122,7 @@ TrustAnchors          Primary    <span class="val">True</span>
       - <span class="val">/etc/localtime:/etc/localtime:ro</span>
       - <span class="path">/var/log/suricata</span>:<span class="path">/var/log/suricata</span>:<span class="val">ro</span>
     
-    <span class="key">command</span>: <span class="val">run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy /etc/alloy/   config.alloy</span>
+    <span class="key">command</span>: <span class="val">run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/tmp/alloy /etc/alloy/config.alloy</span>
     
     <span class="comment"># Alloy parte solo dopo che Loki è disponibile</span>
     <span class="key">depends_on</span>:
