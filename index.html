@@ -437,6 +437,8 @@ h3.legacy-title {
   <p>La prima LAN (10.0.10.1) è destinata a due client Linux (Fedora 10.0.10.101 e Ubuntu 10.0.10.102), mentre la seconda (10.0.20.1) collega il server Debian alla macchina Windows Server (Controller di Dominio), che gestisce <strong>Active Directory</strong> e il servizio DNS per l'intera struttura. Tutto il traffico della rete privata transita crittografato all'interno del tunnel <strong>WireGuard</strong> (VPN).</p>
 
   <p><strong>Samba</strong>, da Debian, tramite <strong>Winbind</strong> si interfaccia con AD, e per mezzo di CUPS gestisce un Print Server condiviso. <strong>Grafana</strong>, <strong>Prometheus</strong>, <strong>Loki</strong>, <strong>Grafana Alloy</strong> e <strong>cAdvisor</strong>, containerizzati in Docker, monitorano e loggano lo stato delle macchine e della rete, inclusi gli alert generati da <strong>Suricata</strong>, il sistema di rilevamento intrusioni (IDS) attivo sul gateway.</p>
+
+  <p><strong>Fail2ban</strong> completa la difesa attiva, bannando automaticamente gli IP responsabili di tentativi di accesso SSH falliti. </p>
   
   <p><strong>Rsync</strong> e <strong>Cron</strong> gestiscono in modo incrementale il backup automatizzato tramite script, le cui metriche sono integrate nello stesso stack di monitoring.</p>
 </section>
