@@ -34,6 +34,9 @@ Rsync e Cron gestiscono in modo incrementale il backup automatizzato tramite scr
 
 [Maintenance](maintenance)
 
+[Suricata](suricata)
+
+[Fail2ban](fail2ban)
 
 
 
