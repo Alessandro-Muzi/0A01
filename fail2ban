@@ -1,0 +1,41 @@
+Fail2ban
+
+Fail2ban monitora i tentativi di accesso SSH falliti e banna automaticamente gli IP sospetti tramite nftables, integrandosi nella chain input esistente del firewall.
+
+
+/etc/ssh/sshd_config
+
+#abilita il login SSH tramite password (invece dell'eventuale sola chiave pubblica/privata)
+PasswordAuthentication yes
+#impedisce che un utente con password vuota possa fare login.
+PermitEmptyPasswords no
+
+/etc/fail2ban/jail.local
+
+[DEFAULT]
+# Specifica la table "ip" nella chain input — senza questo Fail2ban si aspetta di default la table "inet"
+banaction = nftables-multiport[table=ip, chain=input]
+banaction_allports = nftables-allports[table=ip, chain=input]
+
+[sshd]
+#attiva questa specifica jail
+enable=true
+#monitora la porta ssh (22)
+port=ssh
+#legge i log tramite journald invece che da file, più affidabile su sistemi moderni
+backend=systemd
+#usa il filtro predefinito che riconosce i pattern di fallimento login SSH
+filter=sshd
+#percorso di log (non strettamente necessario con backend=systemd, che legge da journald)
+logpath=/var/log/auth.log
+#dopo 3 tentativi falliti, banna
+maxretry=3
+#ban di 300 secondi (5 minuti)
+bantime=300
+#non banna il loopback
+ignoreip=127.0.0.1
+
+/etc/fail2ban/fail2ban.conf
+
+#Gestione IPv6 nel banning (auto rileva se disponibile sul sistema)
+allowipv6 = auto
