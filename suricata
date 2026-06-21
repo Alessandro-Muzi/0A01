@@ -1,0 +1,22 @@
+Suricata
+
+Suricata in modalità IDS, configurato sull'interfaccia WAN con community-id abilitato. I log (formato EVE/JSON) sono integrati nello stack di monitoring esistente tramite Grafana Alloy, Loki e Grafana, per la visualizzazione centralizzata degli alert.
+estratto da /etc/suricata/suricata.yaml
+
+# Il Community ID è un hash standardizzato calcolato sui 5-tuple di rete
+# (IP sorgente/destinazione, porte, protocollo) che permette di correlare
+# lo stesso flusso di traffico tra tool diversi (es. Suricata,Wireshark, Zeek, SIEM)
+# enable/disable the community id feature.
+community-id: true
+
+# Linux high speed capture support
+af-packet:
+  - interface: enp0s3
+
+# Cross platform libpcap capture support
+pcap:
+  - interface: enp0s3
+
+pfring:
+  - interface: enp0s3
+
