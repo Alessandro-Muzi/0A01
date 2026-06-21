@@ -1248,6 +1248,7 @@ EOF
   <h3>Pianificazione automatica (crontab)</h3>
   <pre>
 <span class="comment"># crontab -e</span>
+<span class="comment"># avvia il backup ogni notte alle 2</span>
 <span class="val">0 2 * * *</span> <span class="path">/usr/local/bin/backup-samba.sh</span> >> <span class="path">/var/log/backup-samba.log</span> 2>&1
 </pre>
 </section>
