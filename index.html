@@ -508,7 +508,7 @@ iface <span class="iface">enp0s9</span> inet static
 
     <h3>/etc/resolv.conf</h3>
     <div class="callout yellow">
-      <strong>Nota di Protezione:</strong> Il file è stato reso esplicitamente immutabile tramite il comando <code>chattr +i /etc/resolv.conf</code>. Questo accorgimento impedisce a demoni di sistema come <code>systemd-resolved</code> o client DHCP esterni di sovrascrivere o alterare i puntamenti DNS al riavvio del server.
+      <strong>Nota di Protezione:</strong> Il file è stato reso esplicitamente immutabile tramite il comando <code>chattr +i /etc/resolv.conf</code>. Questo accorgimento impedisce che venga sovrascritto accidentalmente, ad esempio da <code>systemd-resolved</code> o da modifiche automatiche al riavvio del server.
     </div>
     <pre>
 <span class="comment"># Dominio di ricerca predefinito: permette di risolvere gli hostname corti (es. 'dc' invece di 'dc.lab.local')</span>
