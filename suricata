@@ -1,6 +1,8 @@
 Suricata
 
-Suricata in modalità IDS, configurato sull'interfaccia WAN con community-id abilitato. I log (formato EVE/JSON) sono integrati nello stack di monitoring esistente tramite Grafana Alloy, Loki e Grafana, per la visualizzazione centralizzata degli alert.
+Suricata in modalità IDS, configurato sull'interfaccia WAN con community-id abilitato. I log (formato EVE/JSON) sono integrati nello stack di monitoring esistente 
+tramite Grafana Alloy, Loki e Grafana, per la visualizzazione centralizzata degli alert.
+
 estratto da /etc/suricata/suricata.yaml
 
 # Il Community ID è un hash standardizzato calcolato sui 5-tuple di rete
