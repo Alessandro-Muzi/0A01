@@ -18,7 +18,7 @@ table ip filter {
     chain forward {
         type filter hook forward priority 0 ; policy drop ;
         ct state established,related accept    # connessioni già stabilite
-```diff # VPN WireGuard verso tutte le interfacce ```
+        # VPN WireGuard verso tutte le interfacce
         iifname "wg0" oifname { "enp0s9", "enp0s8", "enp0s3" } accept
         # traffico di ritorno verso wg0
         oifname "wg0" ct state established,related accept
