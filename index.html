@@ -106,22 +106,24 @@ nav {
   }
 
   /* Ora l'effetto hover e attivo agisce sul bordo destro */
-  nav a:hover { 
-    color: var(--accent); 
-    border-right-color: var(--accent); /* Si illumina al passaggio */
-    background: rgba(88,166,255,.05);
-  }
+nav a:hover {
+  color: var(--accent);
+  border-right-color: var(--accent);
+  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.12) 100%);
+}
+
+nav a.active {
+  color: var(--accent);
+  border-right-color: var(--accent);
+  font-weight: 500;
+  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.15) 100%);
+}
 
 .nav-logo a:hover {
   color: var(--accent2); /* un leggero feedback al passaggio del mouse */
 }
 
   
-  nav a.active { 
-    color: var(--accent); 
-    border-right-color: var(--accent); /* Si illumina quando attivo */
-    font-weight: 500;
-  }
 
   .nav-footer {
   margin-top: auto;
