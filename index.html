@@ -93,8 +93,9 @@ nav {
   }
 
   nav a {
+    position: relative;
     display: block;
-    width: 300px;
+    width: fit-content;
     margin-left: auto;
     padding: 6px 20px;
     color: var(--text);
@@ -117,6 +118,22 @@ nav a.active {
   border-right-color: var(--accent);
   font-weight: 500;
   background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.15) 100%);
+}
+
+nav a:hover::before {
+background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.13) 100%);
+}
+
+nav a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -50px;   /* estende l'area visiva oltre il link stesso */
+  left: -240px;    /* quanto vuoi allargare l'highlight */
+  background: transparent;
+  z-index: -1;
+  transition: background .2s ease;
 }
 
 .nav-logo a:hover {
