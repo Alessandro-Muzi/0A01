@@ -110,18 +110,11 @@ nav {
 nav a:hover {
   color: var(--accent);
   border-right-color: var(--accent);
-  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.12) 100%);
-}
-
-nav a.active {
-  color: var(--accent);
-  border-right-color: var(--accent);
-  font-weight: 500;
-  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.15) 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.13) 100%);
 }
 
 nav a:hover::before {
-background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.13) 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.13) 100%);
 }
 
 nav a::before {
@@ -134,6 +127,18 @@ nav a::before {
   background: transparent;
   z-index: -1;
   transition: background .2s ease;
+}
+
+
+nav a.active {
+  color: var(--accent);
+  border-right-color: var(--accent);
+  font-weight: 500;
+  background: linear-gradient(90deg, transparent 0%, rgba(151, 140, 252, 0.13) 100%);
+}
+
+.nav-logo a:hover {
+  color: var(--accent2); /* un leggero feedback al passaggio del mouse */
 }
 
 .nav-logo a:hover {
