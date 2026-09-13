@@ -714,8 +714,6 @@ iface <span class="iface">enp0s9</span> inet static
         <span class="key">ct state</span> <span class="val">established,related</span> <span class="target">accept</span>    <span class="comment"># connessioni già stabilite</span>
         <span class="comment"># VPN WireGuard verso tutte le interfacce</span>
         <span class="key">iifname</span> <span class="iface">"wg0"</span> <span class="key">oifname</span> { <span class="iface">"enp0s9"</span>, <span class="iface">"enp0s8"</span>, <span class="iface">"enp0s3"</span> } <span class="target">accept</span>
-        <span class="comment"># traffico di ritorno verso wg0</span>
-        <span class="key">oifname</span> <span class="iface">"wg0"</span> <span class="key">ct state</span> <span class="val">established,related</span> <span class="target">accept</span>
         <span class="comment"># LAN e Windows verso internet</span>
         <span class="key">iifname</span> <span class="iface">"enp0s8"</span> <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">accept</span>
         <span class="key">iifname</span> <span class="iface">"enp0s9"</span> <span class="key">oifname</span> <span class="iface">"enp0s3"</span> <span class="target">accept</span>
