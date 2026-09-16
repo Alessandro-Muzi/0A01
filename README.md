@@ -12,7 +12,7 @@ Samba, da Debian, tramite Winbind si interfaccia con AD, e per mezzo di CUPS ges
 
 Fail2ban completa la difesa attiva, bannando automaticamente gli IP responsabili di tentativi di accesso SSH falliti.
 
-Rsync e Cron gestiscono in modo incrementale il backup automatizzato tramite script, le cui metriche sono integrate nello stesso stack di monitoring.
+Rsync e Cron gestiscono il backup automatizzato tramite script, le cui metriche sono integrate nello stesso stack di monitoring.
 
 
 [Interfaces](interfaces)
