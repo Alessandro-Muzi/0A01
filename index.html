@@ -1389,22 +1389,20 @@ EOF
 <span class="key">banaction_allports</span> = <span class="val">nftables-allports[table=ip, chain=input]</span>
 
 <span class="sec">[sshd]</span>
-<span class="comment">#attiva questa specifica jail</span>
-<span class="key">enable</span>=<span class="val">true</span>
-<span class="comment">#monitora la porta ssh (22)</span>
-<span class="key">port</span>=<span class="val">ssh</span>
-<span class="comment">#legge i log tramite journald invece che da file, più affidabile su sistemi moderni</span>
-<span class="key">backend</span>=<span class="val">systemd</span>
-<span class="comment">#usa il filtro predefinito che riconosce i pattern di fallimento login SSH</span>
-<span class="key">filter</span>=<span class="val">sshd</span>
-<span class="comment">#percorso di log (non strettamente necessario con backend=systemd, che legge da journald)</span>
-<span class="key">logpath</span>=<span class="path">/var/log/auth.log</span>
-<span class="comment">#dopo 3 tentativi falliti, banna</span>
-<span class="key">maxretry</span>=<span class="val">3</span>
-<span class="comment">#ban di 300 secondi (5 minuti)</span>
-<span class="key">bantime</span>=<span class="val">300</span>
-<span class="comment">#non banna il loopback</span>
-<span class="key">ignoreip</span>=<span class="val">127.0.0.1</span>
+<span class="comment"># attiva questa specifica jail</span>
+<span class="key">enabled</span> = <span class="val">true</span>
+<span class="comment"># monitora la porta ssh (22)</span>
+<span class="key">port</span> = <span class="val">ssh</span>
+<span class="comment"># legge i log tramite journald invece che da file, più affidabile su sistemi moderni</span>
+<span class="key">backend</span> = <span class="val">systemd</span>
+<span class="comment"># usa il filtro predefinito che riconosce i pattern di fallimento login SSH</span>
+<span class="key">filter</span> = <span class="val">sshd</span>
+<span class="comment"># dopo 3 tentativi falliti, banna</span>
+<span class="key">maxretry</span> = <span class="val">3</span>
+<span class="comment"># ban di 300 secondi (5 minuti)</span>
+<span class="key">bantime</span> = <span class="val">300</span>
+<span class="comment"># non banna il loopback e il proprio IP</span>
+<span class="key">ignoreip</span> = <span class="val">127.0.0.1 ::1 192.168.1.3</span>
 </pre>
 
 <h3>/etc/fail2ban/fail2ban.conf</h3>
@@ -1413,6 +1411,7 @@ EOF
 <span class="key">allowipv6</span> = <span class="val">auto</span>
 </pre>
 
+</section>
 
 
 
