@@ -20,8 +20,6 @@ table ip filter {
         ct state established,related accept    # connessioni già stabilite
         # VPN WireGuard verso tutte le interfacce
         iifname "wg0" oifname { "enp0s9", "enp0s8", "enp0s3" } accept
-        # traffico di ritorno verso wg0
-        oifname "wg0" ct state established,related accept
         # LAN e Windows verso internet
         iifname "enp0s8" oifname "enp0s3" accept
         iifname "enp0s9" oifname "enp0s3" accept
