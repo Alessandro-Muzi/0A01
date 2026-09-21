@@ -859,7 +859,7 @@ iface <span class="iface">enp0s9</span> inet static
 
   <section id="ad">
     <h2>Servizi di Directory e Risoluzione dei Nomi (Active Directory &amp; DNS)</h2>
-    <p>Questa sezione documenta l'infrastruttura di identità e risoluzione dei nomi del laboratorio, centralizzata su un Domain Controller <strong>Windows Server</strong> (IP statico: <code>10.0.20.100</code>). L'estrazione dei dati e la manutenzione ordinaria del server sono state eseguite sfruttando la catena di accesso remota e i tunnel VPN/SSH dal Gateway Debian, una configurazione ideale per testare l'interoperabilità e la robustezza della rete. Il flusso si sviluppa a partire dalla <em>Macchina fisica:</em></p>
+    <p>Questa sezione documenta l'infrastruttura di identità e risoluzione dei nomi del laboratorio, centralizzata su un Domain Controller <strong>Windows Server</strong> (IP statico: <code>10.0.20.100</code>). L'estrazione dei dati è stata eseguita sfruttando la catena di accesso remota e il tunnel SSH dal Gateway Debian, una configurazione ideale per testare l'interoperabilità e la robustezza della rete. Il flusso si sviluppa a partire dalla <em>Macchina fisica:</em></p>
     <p>
       <span style="color: var(--accent); font-family: var(--mono); font-size: 13px;">
         <code>Macchina fisica (CMD)</code> ➔ <code>SSH su Fedora/Debian</code> ➔ <code>Cockpit (Browser)</code> ➔ <code>SSH verso il DC Windows</code> ➔ <code>PowerShell</code>
