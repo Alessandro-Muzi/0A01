@@ -872,10 +872,15 @@ iface <span class="iface">enp0s9</span> inet static
     
     <pre>
 <span class="comment"># Verifica del livello funzionale della foresta e del dominio Active Directory via SSH</span>
-<span class="sec">PS C:\></span> <span class="key">Get-ADDomain</span> | <span class="key">Select-Object</span> Name, DomainMode, ForestMode | <span class="key">Format-List</span>
+<span class="sec">PS C:\</span> <span class="key">Get-ADDomain</span> | <span class="key">Select-Object</span> Name, DomainMode, ForestMode | <span class="key">Format-List</span>
 
 Name       : <span class="val">lab</span>
 DomainMode : <span class="val">Windows2016Domain</span>
+ForestMode : <span class="val">{}</span>
+
+<span class="sec">PS C:\</span> <span class="key">Get-ADForest</span> | <span class="key">Select-Object</span> Name, ForestMode | <span class="key">Format-List</span>
+
+Name       : <span class="val">lab.local</span>
 ForestMode : <span class="val">Windows2016Forest</span>
 </pre>
 
