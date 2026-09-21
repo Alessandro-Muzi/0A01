@@ -868,7 +868,7 @@ iface <span class="iface">enp0s9</span> inet static
 
     <h3>Architettura del Dominio e Unità Organizzative (AD DS)</h3>
     <p>Il cuore della gestione delle identità è un dominio Active Directory denominato <code>lab.local</code>. La verifica dei parametri logici della foresta e la mappatura strutturale delle risorse (Utenti, Gruppi e Computer) mostrano un'alberatura logica pulita e l'adozione di livelli funzionali moderni.</p>
-    <p>Il livello di funzionalità del dominio e della foresta è impostato su Windows Server 2016: questo rappresenta il livello logico standard e ottimale introdotto da Microsoft, garantendo la totale compatibilità con le funzionalità moderne di Active Directory anche nel caso di aggiornamenti o edizioni successive di Windows Server.</p>
+    <p>Il livello di funzionalità del dominio e della foresta è impostato su Windows Server 2016: questo rappresenta il livello standard e ottimale introdotto da Microsoft, garantendo la totale compatibilità con le funzionalità moderne di Active Directory anche nel caso di aggiornamenti o edizioni successive di Windows Server.</p>
     
     <pre>
 <span class="comment"># Verifica del livello funzionale della foresta e del dominio Active Directory via SSH</span>
@@ -914,7 +914,7 @@ ForestMode : <span class="val">Windows2016Forest</span>
     </table>
 
     <h3>Configurazione del Servizio DNS Autoritativo</h3>
-    <p>Il Domain Controller, il cui indirizzo viene assegnato automaticamente a tutti i client di rete dal server Kea DHCP (come visto nella sezione precedente), agisce come server DNS primario e autoritativo per l'intera infrastruttura. L'estrazione dello stato del server DNS tramite PowerShell conferma la corretta coesistenza di zone di ricerca diretta, inversa e di inoltro:</p>
+    <p>Il Domain Controller, il cui indirizzo viene assegnato automaticamente a tutti i client di rete dal server Kea DHCP, come visto precedentemente, agisce come server DNS primario e autoritativo per l'intera infrastruttura. L'estrazione dello stato del server DNS tramite PowerShell conferma la corretta coesistenza di zone di ricerca diretta, inversa e di inoltro:</p>
     
     <pre>
 <span class="comment"># Query per estrarre lo stato, la tipologia e l'integrazione AD di tutte le zone DNS attive</span>
