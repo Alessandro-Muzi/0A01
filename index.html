@@ -909,7 +909,7 @@ ForestMode : <span class="val">Windows2016Forest</span>
     </table>
 
     <h3>Configurazione del Servizio DNS Autoritativo</h3>
-    <p>Il Domain Controller agisce come server DNS primario e autoritativo per l'intera infrastruttura. Come documentato nella sezione precedente, questo specifico puntamento viene iniettato automaticamente a tutti i client di rete tramite il server Kea DHCP. L'estrazione dello stato del server DNS tramite PowerShell conferma la corretta coesistenza di zone di ricerca diretta, inversa e di inoltro:</p>
+    <p>Il Domain Controller, il cui indirizzo viene assegnato automaticamente a tutti i client di rete dal server Kea DHCP (come visto nella sezione precedente), agisce come server DNS primario e autoritativo per l'intera infrastruttura. L'estrazione dello stato del server DNS tramite PowerShell conferma la corretta coesistenza di zone di ricerca diretta, inversa e di inoltro:</p>
     
     <pre>
 <span class="comment"># Query per estrarre lo stato, la tipologia e l'integrazione AD di tutte le zone DNS attive</span>
