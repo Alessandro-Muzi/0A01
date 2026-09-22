@@ -813,7 +813,7 @@ iface <span class="iface">enp0s9</span> inet static
     <h2>VPN — WireGuard</h2>
     <p>WireGuard è installato su tutti i nodi dell'infrastruttura. L'interfaccia virtuale <code>wg0</code> ascolta sulla porta UDP 51820.</p>
     <div class="callout yellow">
-      Le chiavi private e pubbliche reali sono state oscurate (<code>*</code>) per motivi di sicurezza.
+      Le chiavi private e pubbliche reali sono state oscurate (<code>*</code>) .
     </div>
     <h3>wg0.conf — Configurazione del Server (Gateway Debian)</h3>
     <pre>
@@ -853,6 +853,8 @@ iface <span class="iface">enp0s9</span> inet static
 <span class="comment"># Indirizzo IP statico univoco assegnato al terzo peer all'interno del tunnel</span>
 <span class="key">AllowedIPs</span> = <span class="ip">10.8.0.4/32</span>
 </pre>
+<div class="callout green">WireGuard usa un meccanismo chiamato cryptokey routing: ogni chiave pubblica di un peer è associata a un insieme di IP tramite AllowedIPs. Questo determina sia dove instradare il traffico diretto a quel peer, sia quali pacchetti, ricevuti da quel peer, vengono accettati come legittimi, basandosi sulla configurazione IP/chiave.</div>
+  
   </section>
 
 
